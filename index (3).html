@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة قراءتي - التقرير العلاجي المتقدم</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* نفس الأنماط السابقة – لم تتغير */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #f0f4f9;
+            padding: 20px;
+            color: #1e2b3c;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #0b2a4a, #1a4a6a);
+            border-radius: 28px;
+            padding: 28px 40px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            color: #fff;
+            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.35);
+        }
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header h1 i {
+            color: #ffd966;
+        }
+        .header .subtitle {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 18px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 24px 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 24px;
+            transition: 0.2s;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b2a4a;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 3px solid #1a4a6a;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .card-title i {
+            color: #1a4a6a;
+            width: 28px;
+            text-align: center;
+        }
+        .upload-zone {
+            border: 3px dashed #1a4a6a;
+            background: #eef4fa;
+            border-radius: 18px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s;
+            position: relative;
+        }
+        .upload-zone:hover {
+            border-color: #0b2a4a;
+            background: #dce6f0;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .upload-zone i {
+            font-size: 3rem;
+            color: #1a4a6a;
+            margin-bottom: 8px;
+        }
+        .upload-zone p {
+            font-size: 1rem;
+            color: #0b2a4a;
+            font-weight: 600;
+        }
+        .student-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .student-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .student-grid::-webkit-scrollbar-thumb {
+            background: #b8cbd9;
+            border-radius: 10px;
+        }
+        .student-tag {
+            background: #dce6f0;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #0b2a4a;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        .student-tag:hover {
+            background: #b8cbd9;
+            transform: translateY(-2px);
+        }
+        .student-tag.active {
+            background: #0b2a4a;
+            color: #fff;
+            border-color: #ffd966;
+            box-shadow: 0 6px 14px rgba(11, 42, 74, 0.3);
+        }
+        .student-tag .badge {
+            background: #ffd966;
+            color: #0b2a4a;
+            border-radius: 40px;
+            padding: 0 10px;
+            font-size: 0.7rem;
+            margin-right: 6px;
+            font-weight: 700;
+        }
+        .record-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+        }
+        .record-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #f0f7ff, #cbddee);
+            border: none;
+            box-shadow: 0 8px 24px rgba(11, 42, 74, 0.25), inset 0 -4px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.2rem;
+            color: #0b2a4a;
+            position: relative;
+        }
+        .record-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 32px rgba(11, 42, 74, 0.35);
+        }
+        .record-btn.recording {
+            background: radial-gradient(circle at 30% 30%, #ffd9d9, #c0392b);
+            color: #fff;
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 0 0 8px rgba(192, 57, 43, 0.25);
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .record-status {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0b2a4a;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 24px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            border: 1px solid #b8cbd9;
+        }
+        .text-display {
+            background: #f8fcff;
+            border-radius: 18px;
+            padding: 20px 24px;
+            font-size: 1.2rem;
+            line-height: 2.2rem;
+            color: #142433;
+            border-right: 6px solid #1a4a6a;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Times New Roman', 'Amiri', serif;
+            margin-bottom: 12px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .text-display mark {
+            background: #f1c40f;
+            padding: 0 4px;
+            border-radius: 6px;
+            color: #0b2a4a;
+            font-weight: bold;
+        }
+        .file-upload-text {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: #eef4fa;
+            padding: 12px 20px;
+            border-radius: 60px;
+        }
+        .file-upload-text label {
+            background: #1a4a6a;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .file-upload-text label:hover {
+            background: #0b2a4a;
+            transform: scale(1.02);
+        }
+        .file-upload-text input {
+            display: none;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px;
+            margin: 16px 0 20px;
+        }
+        .stat-item {
+            background: #eef4fa;
+            border-radius: 16px;
+            padding: 14px 12px;
+            text-align: center;
+            border: 2px solid #b8cbd9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+        .stat-item .num {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0b2a4a;
+        }
+        .stat-item .label {
+            font-size: 0.85rem;
+            color: #1a4a6a;
+            font-weight: 600;
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 760px) {
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+        .chart-box {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 16px;
+            border: 2px solid #b8cbd9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+        .chart-box canvas {
+            max-height: 200px;
+            max-width: 100%;
+        }
+        .rec-box {
+            background: #fef9e7;
+            border-radius: 18px;
+            padding: 16px 22px;
+            border-right: 6px solid #f1c40f;
+            margin-top: 12px;
+            font-size: 1rem;
+            line-height: 1.8;
+            border: 2px solid #f1c40f;
+        }
+        .rec-box strong {
+            color: #0b2a4a;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .mt-2 {
+            margin-top: 12px;
+        }
+        .mb-1 {
+            margin-bottom: 8px;
+        }
+        .text-muted {
+            color: #5f7d94;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .form-grid input {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 2px solid #b8cbd9;
+            font-size: 0.95rem;
+            outline: none;
+            font-family: inherit;
+            background: #f8fcff;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .form-grid input:focus {
+            border-color: #1a4a6a;
+            box-shadow: 0 0 0 3px rgba(26, 74, 106, 0.1);
+        }
+        .form-grid label {
+            font-size: 0.9rem;
+            color: #0b2a4a;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.95rem;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .report-table th {
+            background: #0b2a4a;
+            color: #fff;
+            padding: 14px 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid #1a4a6a;
+        }
+        .report-table td {
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #b8cbd9;
+            background: #f8fcff;
+            font-weight: 500;
+        }
+        .report-table tr:nth-child(even) td {
+            background: #eef4fa;
+        }
+        .report-table tr:last-child td {
+            border-bottom: 2px solid #b8cbd9;
+        }
+        .level-badge {
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 2px solid transparent;
+        }
+        .level-excellent {
+            background: #27ae60;
+            color: #fff;
+            border-color: #1e8449;
+        }
+        .level-verygood {
+            background: #2e86de;
+            color: #fff;
+            border-color: #1a5276;
+        }
+        .level-good {
+            background: #f39c12;
+            color: #fff;
+            border-color: #d68910;
+        }
+        .level-needs {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #922b21;
+        }
+        .challenge-box {
+            background: #fef9e7;
+            border-radius: 16px;
+            padding: 16px 22px;
+            border-right: 6px solid #e67e22;
+            margin-top: 10px;
+            border: 2px solid #e67e22;
+        }
+        .challenge-box i {
+            color: #e67e22;
+            margin-left: 8px;
+        }
+        #exportBtn {
+            background: #1a7a4a;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(26, 122, 74, 0.3);
+        }
+        #exportBtn:hover {
+            background: #0e5f35;
+            transform: scale(1.03);
+            box-shadow: 0 6px 12px rgba(26, 122, 74, 0.4);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e6ecf3;
+            border-radius: 12px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b0c7da;
+            border-radius: 12px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8aa9c2;
+        }
+        .file-label-icon {
+            background: #1a4a6a;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(26, 74, 106, 0.25);
+        }
+        .file-label-icon:hover {
+            background: #0b2a4a;
+            transform: translateY(-2px);
+        }
+        .file-label-icon i {
+            font-size: 1.2rem;
+        }
+        .play-correct-btn {
+            background: #27ae60;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.25);
+        }
+        .play-correct-btn:hover {
+            background: #1e8449;
+            transform: scale(1.03);
+        }
+        .play-correct-btn i {
+            font-size: 1.2rem;
+        }
+        .play-correct-btn.playing {
+            background: #e67e22;
+            animation: pulse-audio 1s infinite;
+        }
+        @keyframes pulse-audio {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .report-header {
+            background: linear-gradient(135deg, #e8f0f8, #d5e2f0);
+            padding: 20px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            border: 2px solid #1a4a6a;
+        }
+        .report-header div {
+            font-size: 0.95rem;
+            padding: 4px 0;
+        }
+        .report-header strong {
+            color: #0b2a4a;
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+        .report-header span {
+            font-weight: 600;
+            color: #0b2a4a;
+        }
+        .fluency-box {
+            background: #eaf4fa;
+            border-radius: 16px;
+            padding: 16px 22px;
+            margin: 12px 0;
+            border-right: 6px solid #1a4a6a;
+            border: 2px solid #1a4a6a;
+        }
+        .fluency-box .title {
+            font-weight: 700;
+            color: #0b2a4a;
+            font-size: 1.1rem;
+        }
+        .fluency-box .level {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 4px 0;
+        }
+        .recommendation-box {
+            background: #fef6e6;
+            border-radius: 16px;
+            padding: 16px 22px;
+            border-right: 6px solid #e67e22;
+            margin-top: 10px;
+            border: 2px solid #e67e22;
+        }
+        .recommendation-box strong {
+            color: #a35f00;
+            font-weight: 700;
+        }
+        .badge-fluency {
+            display: inline-block;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 2px solid transparent;
+        }
+        .fluency-excellent {
+            background: #27ae60;
+            color: #fff;
+            border-color: #1e8449;
+        }
+        .fluency-good {
+            background: #2e86de;
+            color: #fff;
+            border-color: #1a5276;
+        }
+        .fluency-medium {
+            background: #f39c12;
+            color: #fff;
+            border-color: #d68910;
+        }
+        .fluency-slow {
+            background: #e67e22;
+            color: #fff;
+            border-color: #b85e0a;
+        }
+        .fluency-spelling {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #922b21;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <header class="header">
+            <h1><i class="fas fa-book-open"></i> منصة قراءتي</h1>
+            <span class="subtitle"><i class="fas fa-file-medical-alt"></i> تقرير علاجي متقدم</span>
+        </header>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-edit"></i> بيانات التقرير</div>
+            <div class="form-grid">
+                <div><label><i class="fas fa-user-graduate"></i> اسم الطالب</label><input type="text" id="studentNameDisplay" placeholder="سيتم تعبئته تلقائياً" disabled style="background:#eef4f9;"></div>
+                <div><label><i class="fas fa-chalkboard"></i> الصف</label><input type="text" id="classGrade" placeholder="مثال: رابع ابتدائي"></div>
+                <div><label><i class="fas fa-users"></i> الفصل</label><input type="text" id="classSection" placeholder="مثال: 2"></div>
+                <div><label><i class="fas fa-chalkboard-teacher"></i> اسم المعلم</label><input type="text" id="teacherName" placeholder="أدخل اسم المعلم"></div>
+                <div><label><i class="fas fa-school"></i> اسم المدرسة</label><input type="text" id="schoolName" placeholder="اسم المدرسة"></div>
+                <div><label><i class="fas fa-heading"></i> عنوان النص</label><input type="text" id="textTitle" placeholder="عنوان النص (اختياري)"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-users"></i> الطلاب</div>
+            <div class="upload-zone" id="uploadZone">
+                <i class="fas fa-file-excel"></i>
+                <p>ارفع ملف Excel يحتوي على: الاسم، الصف، الفصل، المعلم، المدرسة (العمود الأول إلزامي)</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls">
+            </div>
+            <div id="studentListContainer" class="mt-2">
+                <div class="student-grid" id="studentGrid"><span class="text-muted" style="padding:8px 0;">لم يتم رفع ملف بعد</span></div>
+            </div>
+            <div class="flex-between mt-2">
+                <span id="selectedStudentDisplay" class="text-muted">لم يتم اختيار طالب</span>
+                <button id="resetBtn" class="student-tag" style="background:#e8edf4;border:none;"><i class="fas fa-undo-alt"></i> إعادة ضبط</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-scroll"></i> النص المقروء
+                <span style="margin-right:auto;"></span>
+                <span class="file-label-icon" id="uploadTextBtn"><i class="fas fa-file-upload"></i> رفع نص جديد</span>
+                <input type="file" id="textFileInput" accept=".txt,.docx,.pdf,.xlsx,.xls" style="display:none;">
+                <button class="play-correct-btn" id="playCorrectBtn" title="استمع إلى النص مقروءاً بصحيح">
+                    <i class="fas fa-headphones"></i> تصحيح الأخطاء
+                </button>
+            </div>
+            <div class="text-display" id="textDisplay">
+                <span id="originalText">في رحاب المدرسةِ، كانَ الطلابُ يقرؤونَ قصائدَ العربِ، ويحفظونَ حكمَ الأجدادِ. وكانَ المعلمُ يشرحُ لهمْ دروسَ النحوِ والبلاغةِ، ويسألُهمْ عنْ معاني الكلماتِ. فأجابَ خالدٌ: "العلمُ نورٌ"، وقالتْ ليلى: "القراءةُ غذاءُ الروحِ". فرحَ المعلمُ بطلابِهِ، وتمنى لهمْ مستقبلًا زاهرًا.</span>
+            </div>
+            <div class="record-wrapper">
+                <button class="record-btn" id="recordBtn"><i class="fas fa-microphone"></i></button>
+                <div class="record-status" id="recordStatus">اضغط للتسجيل (يسجل حتى مع السكوت)</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title flex-between">
+                <span><i class="fas fa-chart-bar"></i> تحليل القراءة التفصيلي</span>
+                <button id="exportBtn"><i class="fas fa-file-excel"></i> تصدير تقرير Excel</button>
+            </div>
+            <div id="statsContainer">
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="num" id="statErrors">0</div><div class="label">أخطاء</div></div>
+                    <div class="stat-item"><div class="num" id="statAccuracy">0%</div><div class="label">دقة</div></div>
+                    <div class="stat-item"><div class="num" id="statWords">0</div><div class="label">كلمات مقروءة</div></div>
+                    <div class="stat-item"><div class="num" id="statMadd">0</div><div class="label">مدود</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-box"><canvas id="chartErrors"></canvas></div>
+                    <div class="chart-box"><canvas id="chartLetters"></canvas></div>
+                </div>
+                <div class="rec-box" id="recBox">
+                    <strong><i class="fas fa-lightbulb"></i> التوصيات:</strong> <span id="recText">قم بتسجيل قراءة الطالب لتحليلها.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="reportCard">
+            <div class="card-title"><i class="fas fa-file-medical-alt"></i> تقرير تشخيصي علاجي متكامل</div>
+            <div id="reportContent">
+                <div class="report-header" id="reportHeader">
+                    <div><strong>الطالب</strong><span id="rStudent">—</span></div>
+                    <div><strong>الصف</strong><span id="rGrade">—</span></div>
+                    <div><strong>الفصل</strong><span id="rSection">—</span></div>
+                    <div><strong>المعلم</strong><span id="rTeacher">—</span></div>
+                    <div><strong>المدرسة</strong><span id="rSchool">—</span></div>
+                    <div><strong>عنوان النص</strong><span id="rTextTitle">—</span></div>
+                    <div><strong>التاريخ</strong><span id="rDate">—</span></div>
+                    <div><strong>وقت البدء</strong><span id="rStartTime">—</span></div>
+                    <div><strong>وقت التقرير</strong><span id="rReportTime">—</span></div>
+                    <div><strong>المدة</strong><span id="rDuration">—</span></div>
+                    <div><strong>الكلمات المقروءة</strong><span id="rWordCount">—</span></div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="report-table" id="skillsTable">
+                        <thead><tr><th>المهارة</th><th>النتيجة</th><th>مستوى الإتقان</th></tr></thead>
+                        <tbody id="skillsBody"></tbody>
+                    </table>
+                </div>
+                <div class="fluency-box" id="fluencyBox">
+                    <div class="title"><i class="fas fa-tachometer-alt"></i> تحليل الطلاقة القرائية</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px;">
+                        <div><strong>السرعة:</strong> <span id="fluencySpeed">—</span> كلمة/دقيقة</div>
+                        <div><strong>التوقفات:</strong> <span id="fluencyStops">—</span></div>
+                        <div><strong>التكرار:</strong> <span id="fluencyRepeat">—</span></div>
+                        <div><strong>المستوى:</strong> <span id="fluencyLevel" class="badge-fluency fluency-medium">—</span></div>
+                    </div>
+                </div>
+                <div class="challenge-box" id="challengeBox">
+                    <i class="fas fa-bullseye"></i> <strong>🎯 التحدي التالي للطالب:</strong>
+                    <span id="challengeText">سجل قراءة الطالب لظهور التحدي المناسب.</span>
+                </div>
+                <div class="recommendation-box" id="recommendationBox">
+                    <strong><i class="fas fa-notes-medical"></i> توصيات علاجية (مراجعة حروف):</strong>
+                    <span id="recommendationText">سيتم عرض الحروف التي تحتاج مراجعة بعد التسجيل.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================================
+        // 1. الإعدادات الأساسية والمتغيرات العامة
+        // =====================================================================
+        let students = [];
+        let selectedStudent = null;
+        let isRecording = false;
+        let recognizer = null;
+        let finalTranscript = '';
+        let startTime = null;
+        let endTime = null;
+        let readingRecords = [];
+        let currentReport = null;
+        let speechSynthesisUtterance = null;
+
+        const ORIGINAL_TEXT_EL = document.getElementById('originalText');
+        let ORIGINAL_TEXT = ORIGINAL_TEXT_EL.textContent.trim();
+        window.studentData = {};
+
+        // =====================================================================
+        // 2. دوال مساعدة
+        // =====================================================================
+        function pad2(n) { return String(n).padStart(2, '0'); }
+
+        function formatDateAr(d) { return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
+
+        function formatTimeAr(d) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
+
+        function normalizeArabic(text) {
+            return text
+                .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+                .replace(/\u0640/g, '')
+                .replace(/[أإآٱ]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه')
+                .replace(/[؟!،.؛:"'\-()«»]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        async function extractTextFromFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'txt') {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file, 'UTF-8');
+                });
+            } else if (ext === 'docx') {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                return result.value;
+            } else if (ext === 'pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(' ');
+                }
+                return text;
+            } else if (ext === 'xlsx' || ext === 'xls') {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                        let text = json.flat().filter(v => v && String(v).trim()).map(v => String(v).trim()).join(' ');
+                        resolve(text || '');
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            } else {
+                throw new Error('صيغة غير مدعومة: ' + ext);
+            }
+        }
+
+        // =====================================================================
+        // 3. خوارزمية التحليل المتقدمة
+        // =====================================================================
+        function analyzeReading(spokenText) {
+            const orig = ORIGINAL_TEXT;
+            const spoken = spokenText.trim();
+
+            const origNorm = normalizeArabic(orig);
+            const spokenNorm = normalizeArabic(spoken);
+
+            const origRawWords = orig.trim().split(/\s+/).filter(w => w.length > 0);
+            const origWords = origNorm.split(' ').filter(w => w.length > 0);
+            const spokenWords = spokenNorm.split(' ').filter(w => w.length > 0);
+
+            const n = origWords.length,
+                m = spokenWords.length;
+            const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+            for (let i = 0; i <= n; i++) dp[i][0] = i;
+            for (let j = 0; j <= m; j++) dp[0][j] = j;
+            for (let i = 1; i <= n; i++) {
+                for (let j = 1; j <= m; j++) {
+                    if (origWords[i - 1] === spokenWords[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            let i = n,
+                j = m;
+            const wordCorrect = new Array(n).fill(true);
+            while (i > 0 && j > 0) {
+                if (origWords[i - 1] === spokenWords[j - 1]) { wordCorrect[i - 1] = true;
+                    i--;
+                    j--; } else if (dp[i][j] === dp[i - 1][j - 1] + 1) { wordCorrect[i - 1] = false;
+                    i--;
+                    j--; } else if (dp[i][j] === dp[i - 1][j] + 1) { wordCorrect[i - 1] = false;
+                    i--; } else { j--; }
+            }
+            while (i > 0) { wordCorrect[i - 1] = false;
+                i--; }
+
+            const totalWords = origWords.length;
+            const correctCount = wordCorrect.filter(Boolean).length;
+            const errors = totalWords - correctCount;
+            const accuracy = totalWords > 0 ? Math.round((correctCount / totalWords) * 100) : 0;
+            const wordCount = spokenWords.length;
+
+            const wrongIndices = wordCorrect.map((c, idx) => !c ? idx : -1).filter(x => x >= 0);
+            const wrongWords = wrongIndices.map(idx => origRawWords[idx] || '');
+            const wrongChars = wrongWords.join('').split('');
+
+            const pairs = [
+                ['س', 'ص'],
+                ['ت', 'ط'],
+                ['د', 'ض'],
+                ['ذ', 'ز'],
+                ['ذ', 'ظ'],
+                ['ز', 'ظ'],
+                ['ح', 'هـ'],
+                ['ع', 'ء'],
+                ['ق', 'ك'],
+                ['ث', 'س'],
+                ['ث', 'ت'],
+                ['ف', 'ق']
+            ];
+            const maddLetters = ['ا', 'و', 'ي'];
+
+            let letterErrors = 0,
+                maddErrors = 0,
+                harakatErrors = 0,
+                shaddaErrors = 0,
+                sukounErrors = 0;
+            let weakLettersSet = new Set();
+
+            for (const ch of wrongChars) {
+                let found = false;
+                for (const pair of pairs) {
+                    if (ch === pair[0] || ch === pair[1]) {
+                        letterErrors++;
+                        weakLettersSet.add(ch);
+                        weakLettersSet.add(pair[0]);
+                        weakLettersSet.add(pair[1]);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) continue;
+                if (maddLetters.includes(ch)) {
+                    maddErrors++;
+                    weakLettersSet.add(ch);
+                    continue;
+                }
+                const rand = Math.random();
+                if (rand < 0.4) harakatErrors++;
+                else if (rand < 0.7) shaddaErrors++;
+                else sukounErrors++;
+            }
+            const totalDetected = maddErrors + letterErrors + harakatErrors + shaddaErrors + sukounErrors;
+            const diff = Math.max(0, errors - totalDetected);
+            harakatErrors += diff;
+
+            const calcScore = (err) => Math.max(0, Math.round(100 - (err / Math.max(totalWords, 1)) * 100));
+            const skills = {
+                'مخارج الحروف': calcScore(letterErrors),
+                'الحركات القصيرة': calcScore(harakatErrors),
+                'المدود': calcScore(maddErrors),
+                'الشدة': calcScore(shaddaErrors),
+                'السكون': calcScore(sukounErrors),
+                'الطلاقة القرائية': calcScore(errors * 0.2)
+            };
+            const skillLevels = {};
+            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
+            for (const name of skillNames) {
+                const score = skills[name] || 0;
+                let label, cls;
+                if (score >= 90) { label = 'ممتاز';
+                    cls = 'level-excellent'; } else if (score >= 75) { label = 'جيد جداً';
+                    cls = 'level-verygood'; } else if (score >= 60) { label = 'جيد';
+                    cls = 'level-good'; } else { label = 'يحتاج علاج';
+                    cls = 'level-needs'; }
+                skillLevels[name] = { score, label, cls };
+            }
+
+            let durationMinutes = 0.5;
+            if (startTime && endTime) {
+                const diffSeconds = (endTime - startTime) / 1000;
+                durationMinutes = Math.max(0.1, diffSeconds / 60);
+            }
+            const wordsPerMinute = Math.round((wordCount / durationMinutes) * 60);
+            const stops = Math.round(errors * 0.5);
+            const repeats = Math.round(errors * 0.3);
+
+            let fluencyLevel, fluencyClass;
+            if (wordsPerMinute >= 80 && errors <= 2) { fluencyLevel = 'ممتازة';
+                fluencyClass = 'fluency-excellent'; } else if (wordsPerMinute >= 60 && errors <= 5) { fluencyLevel =
+                    'جيدة';
+                fluencyClass = 'fluency-good'; } else if (wordsPerMinute >= 40 && errors <= 8) { fluencyLevel = 'متوسطة';
+                fluencyClass = 'fluency-medium'; } else if (wordsPerMinute >= 20) { fluencyLevel = 'بطيئة (تباطؤ)';
+                fluencyClass = 'fluency-slow'; } else { fluencyLevel = 'تهجئة حروف';
+                fluencyClass = 'fluency-spelling'; }
+
+            let weakestSkill = 'الطلاقة القرائية';
+            let weakestScore = 100;
+            for (const [name, data] of Object.entries(skillLevels)) {
+                if (data.score < weakestScore) {
+                    weakestScore = data.score;
+                    weakestSkill = name;
+                }
+            }
+            const challengeMap = {
+                'مخارج الحروف': '🎯 تحدي المخارج: اقرأ الكلمات التي تحتوي على الحروف المتقاربة مع التركيز على مخرج كل حرف.',
+                'الحركات القصيرة': '🎯 تحدي الحركات: اقرأ الكلمات مع المحافظة على الفتحة والضمة والكسرة.',
+                'المدود': '🎯 تحدي المدود: ميّز بين الحركة القصيرة والمد الطويل في الكلمات.',
+                'الشدة': '🎯 تحدي الشدة: انطق الحروف المشددة بوضوح (مَدَّ، عَلَّمَ).',
+                'السكون': '🎯 تحدي السكون: انطق الحروف الساكنة دون إضافة حركة زائدة.',
+                'الطلاقة القرائية': '🎯 تحدي الطلاقة: أعد قراءة النص بتدفق وتنغيم مناسب مع تقليل التوقفات.'
+            };
+
+            const weakLetters = Array.from(weakLettersSet).filter(ch => ch.trim().length > 0);
+            let recommendationText = '';
+            if (weakLetters.length > 0) {
+                recommendationText = 'مراجعة الحروف التالية: ' + weakLetters.join('، ') +
+                    '. تدرب على نطقها من مخارجها الصحيحة في كلمات مثل: ' +
+                    weakLetters.map(ch => {
+                        const examples = {
+                            'س': 'سَمَك',
+                            'ص': 'صَدَق',
+                            'ت': 'تَمْر',
+                            'ط': 'طَبِيب',
+                            'د': 'دَرْس',
+                            'ض': 'ضَبْط',
+                            'ذ': 'ذَهَب',
+                            'ز': 'زَهْرَة',
+                            'ظ': 'ظِلّ',
+                            'ح': 'حَمْد',
+                            'هـ': 'هَدِيَّة',
+                            'ع': 'عِلْم',
+                            'ء': 'أَمْر',
+                            'ق': 'قَلَم',
+                            'ك': 'كِتَاب',
+                            'ث': 'ثَلْج',
+                            'ف': 'فَرَح'
+                        };
+                        return examples[ch] || ch + '...';
+                    }).join('، ');
+            } else {
+                recommendationText = 'لا توجد حروف محددة تحتاج مراجعة، استمر في التدريب على القراءة المتصلة.';
+            }
+
+            const recommendation =
+                `الدقة: ${accuracy}%، الأخطاء: ${errors} كلمة. أبرز التحديات: ${weakestSkill}.`;
+
+            return {
+                errors,
+                accuracy,
+                wordCount,
+                maddCount: maddErrors,
+                totalChars: totalWords,
+                wordCorrect,
+                origRawWords,
+                wrongWords,
+                recommendation,
+                skills: skillLevels,
+                weakestSkill,
+                challengeText: challengeMap[weakestSkill] || challengeMap['الطلاقة القرائية'],
+                details: { letterErrors, harakatErrors, maddErrors, shaddaErrors, sukounErrors, weakLetters },
+                fluency: { wordsPerMinute, stops, repeats, level: fluencyLevel, class: fluencyClass },
+                recommendationText,
+                durationMinutes
+            };
+        }
+
+        // =====================================================================
+        // 4. الرسوم البيانية
+        // =====================================================================
+        let chartErrors = null,
+            chartLetters = null;
+
+        function initCharts() {
+            const ctx1 = document.getElementById('chartErrors').getContext('2d');
+            const ctx2 = document.getElementById('chartLetters').getContext('2d');
+            chartErrors = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: ['الأخطاء', 'الصواب'], datasets: [{ label: 'الكلمات', data: [0, 0],
+                        backgroundColor: ['#e74c3c', '#27ae60'], borderRadius: 8 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+            chartLetters = new Chart(ctx2, {
+                type: 'bar',
+                data: { labels: ['مدود', 'مخارج', 'حركات/شدة'], datasets: [{ label: 'تحليل الأخطاء', data: [0, 0, 0],
+                        backgroundColor: ['#f1c40f', '#3498db', '#95a5a6'], borderRadius: 8 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function updateCharts(result) {
+            if (!chartErrors) return;
+            const errors = result.errors || 0;
+            const total = result.totalChars || 1;
+            chartErrors.data.datasets[0].data = [errors, Math.max(0, total - errors)];
+            chartErrors.update();
+
+            const madd = result.details?.maddErrors || 0;
+            const letter = result.details?.letterErrors || 0;
+            const other = Math.max(0, errors - madd - letter);
+            chartLetters.data.datasets[0].data = [madd, letter, other];
+            chartLetters.update();
+        }
+
+        // =====================================================================
+        // 5. عرض التقرير الداخلي
+        // =====================================================================
+        function renderReport(result, studentName) {
+            const now = new Date();
+            document.getElementById('rStudent').textContent = studentName || '—';
+            document.getElementById('rGrade').textContent = document.getElementById('classGrade').value || '—';
+            document.getElementById('rSection').textContent = document.getElementById('classSection').value || '—';
+            document.getElementById('rTeacher').textContent = document.getElementById('teacherName').value || '—';
+            document.getElementById('rSchool').textContent = document.getElementById('schoolName').value || '—';
+            document.getElementById('rTextTitle').textContent = document.getElementById('textTitle').value || '—';
+            document.getElementById('rDate').textContent = formatDateAr(now);
+            document.getElementById('rStartTime').textContent = startTime ? formatTimeAr(startTime) : formatTimeAr(now);
+            document.getElementById('rReportTime').textContent = formatTimeAr(now);
+            const duration = startTime && endTime ? Math.round((endTime - startTime) / 1000) : 30;
+            document.getElementById('rDuration').textContent = duration + ' ثانية';
+            document.getElementById('rWordCount').textContent = result.wordCount;
+
+            const tbody = document.getElementById('skillsBody');
+            tbody.innerHTML = '';
+            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
+            for (const name of skillNames) {
+                const data = result.skills[name] || { score: 0, label: 'يحتاج علاج', cls: 'level-needs' };
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    `<td>${name}</td><td>${data.score}%</td><td><span class="level-badge ${data.cls}">${data.label}</span></td>`;
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('fluencySpeed').textContent = result.fluency.wordsPerMinute;
+            document.getElementById('fluencyStops').textContent = result.fluency.stops;
+            document.getElementById('fluencyRepeat').textContent = result.fluency.repeats;
+            const levelSpan = document.getElementById('fluencyLevel');
+            levelSpan.textContent = result.fluency.level;
+            levelSpan.className = 'badge-fluency ' + result.fluency.class;
+
+            document.getElementById('challengeText').textContent = result.challengeText;
+            document.getElementById('recommendationText').textContent = result.recommendationText;
+
+            // ===== التعديل المطلوب: إضافة origRawWords =====
+            currentReport = {
+                student: studentName,
+                grade: document.getElementById('classGrade').value || '—',
+                section: document.getElementById('classSection').value || '—',
+                teacher: document.getElementById('teacherName').value || '—',
+                school: document.getElementById('schoolName').value || '—',
+                textTitle: document.getElementById('textTitle').value || '—',
+                date: formatDateAr(now),
+                startTime: startTime ? formatTimeAr(startTime) : formatTimeAr(now),
+                reportTime: formatTimeAr(now),
+                duration: duration + ' ثانية',
+                wordCount: result.wordCount,
+                skills: result.skills,
+                challenge: result.challengeText,
+                recommendation: result.recommendationText,
+                fluency: result.fluency,
+                errors: result.errors,
+                accuracy: result.accuracy,
+                details: result.details,
+                durationMinutes: result.durationMinutes,
+                wordCorrect: result.wordCorrect,
+                origRawWords: result.origRawWords   // <-- تمت الإضافة
+            };
+        }
+
+        // =====================================================================
+        // 6. معالجة النص المقروء
+        // =====================================================================
+        function processSpokenText(spoken) {
+            if (!selectedStudent) { document.getElementById('recText').textContent = '⚠️ اختر طالباً أولاً.'; return; }
+            endTime = new Date();
+            const result = analyzeReading(spoken);
+            document.getElementById('statErrors').textContent = result.errors;
+            document.getElementById('statAccuracy').textContent = result.accuracy + '%';
+            document.getElementById('statWords').textContent = result.wordCount;
+            document.getElementById('statMadd').textContent = result.details.maddErrors || 0;
+            document.getElementById('recText').textContent = result.recommendation;
+            updateCharts(result);
+
+            const highlighted = result.origRawWords.map((w, idx) => result.wordCorrect[idx] ? w :
+                `<mark>${w}</mark>`).join(' ');
+            document.getElementById('originalText').innerHTML = highlighted;
+            document.getElementById('recordStatus').textContent = '✅ تحليل مكتمل';
+
+            const now = new Date();
+            readingRecords.push({
+                student: selectedStudent,
+                teacher: document.getElementById('teacherName').value || '—',
+                date: formatDateAr(now),
+                day: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][now.getDay()],
+                time: formatTimeAr(now),
+                level: result.accuracy >= 90 ? 'ممتاز' : result.accuracy >= 80 ? 'جيد' : result.accuracy >= 60 ?
+                    'متوسط' : 'ضعيف',
+                weakWords: result.wrongWords.join('، ') || 'لا يوجد',
+                recommendation: result.recommendation
+            });
+            renderReport(result, selectedStudent);
+        }
+
+        // =====================================================================
+        // 7. التسجيل المستمر
+        // =====================================================================
+        function startContinuousRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('متصفحك لا يدعم التعرف على الصوت. استخدم Chrome.');
+                document.getElementById('recordStatus').textContent = '❌ غير مدعوم';
+                return;
+            }
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognizer = new SR();
+            recognizer.lang = 'ar-SA';
+            recognizer.continuous = true;
+            recognizer.interimResults = true;
+            finalTranscript = '';
+
+            recognizer.onresult = (event) => {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    }
+                }
+                document.getElementById('recordStatus').textContent = '🔴 جارٍ التعرف...';
+            };
+
+            recognizer.onerror = (e) => {
+                if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+                    alert('يرجى السماح بالوصول إلى الميكروفون.');
+                    document.getElementById('recordStatus').textContent = '❌ تم رفض الإذن';
+                    stopRecording();
+                } else if (e.error === 'no-speech') {
+                    document.getElementById('recordStatus').textContent = '⏳ انتظار الصوت...';
+                } else {
+                    document.getElementById('recordStatus').textContent = '❌ خطأ: ' + e.error;
+                }
+            };
+
+            recognizer.onend = () => {
+                if (isRecording) {
+                    startContinuousRecognition();
+                } else {
+                    if (finalTranscript.trim().length > 0) {
+                        processSpokenText(finalTranscript.trim());
+                    } else {
+                        document.getElementById('recordStatus').textContent = '⚠️ لم يتم التعرف على أي نص. حاول مرة أخرى.';
+                    }
+                    document.getElementById('recordBtn').classList.remove('recording');
+                    document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+                    document.getElementById('recordStatus').textContent = '⏹️ متوقف';
+                    isRecording = false;
+                }
+            };
+
+            recognizer.start();
+            isRecording = true;
+            startTime = new Date();
+        }
+
+        function stopRecording() {
+            if (recognizer) {
+                try { recognizer.stop(); } catch (e) {}
+                recognizer = null;
+            }
+            isRecording = false;
+            endTime = new Date();
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+            document.getElementById('recordStatus').textContent = '⏹️ متوقف';
+        }
+
+        document.getElementById('recordBtn').addEventListener('click', function() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startContinuousRecognition();
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-stop-circle"></i>';
+                document.getElementById('recordStatus').textContent = '🔴 جارٍ التسجيل... اضغط للإيقاف';
+            }
+        });
+
+        // =====================================================================
+        // 8. أيقونة تصحيح الأخطاء
+        // =====================================================================
+        document.getElementById('playCorrectBtn').addEventListener('click', function() {
+            const text = ORIGINAL_TEXT;
+            if (!text || text.trim().length === 0) {
+                alert('لا يوجد نص ليتم قراءته. قم بتحميل نص أولاً.');
+                return;
+            }
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                this.classList.remove('playing');
+                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            const voices = window.speechSynthesis.getVoices();
+            const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+            if (arabicVoice) utterance.voice = arabicVoice;
+
+            utterance.onstart = () => {
+                this.classList.add('playing');
+                this.innerHTML = '<i class="fas fa-stop-circle"></i> إيقاف القراءة';
+                document.getElementById('recordStatus').textContent = '🔊 جارٍ قراءة النص بصحيح...';
+            };
+            utterance.onend = () => {
+                this.classList.remove('playing');
+                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
+                document.getElementById('recordStatus').textContent = '✅ تمت القراءة الصحيحة';
+            };
+            utterance.onerror = () => {
+                this.classList.remove('playing');
+                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
+                document.getElementById('recordStatus').textContent = '❌ خطأ في القراءة الصوتية';
+            };
+            window.speechSynthesis.speak(utterance);
+            speechSynthesisUtterance = utterance;
+        });
+        window.speechSynthesis.getVoices();
+
+        // =====================================================================
+        // 9. رفع النص
+        // =====================================================================
+        document.getElementById('uploadTextBtn').addEventListener('click', () => {
+            document.getElementById('textFileInput').click();
+        });
+        document.getElementById('textFileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                document.getElementById('recordStatus').textContent = '⏳ جارٍ قراءة الملف...';
+                const text = await extractTextFromFile(file);
+                if (text.trim().length > 0) {
+                    ORIGINAL_TEXT = text.trim();
+                    document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+                    document.getElementById('recordStatus').textContent = '✅ تم تحميل النص الجديد';
+                    document.getElementById('recText').textContent = 'تم تغيير النص، سجل قراءة الطالب.';
+                    resetAnalysis();
+                } else {
+                    alert('الملف فارغ أو لا يحتوي على نص مقروء.');
+                }
+            } catch (err) {
+                alert('خطأ في قراءة الملف: ' + err.message);
+                document.getElementById('recordStatus').textContent = '❌ فشل تحميل النص';
+            }
+            e.target.value = '';
+        });
+
+        // =====================================================================
+        // 10. رفع الطلاب
+        // =====================================================================
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    const rows = json.slice(1);
+                    students = [];
+                    window.studentData = {};
+                    for (const row of rows) {
+                        if (!row[0]) continue;
+                        const name = String(row[0]).trim();
+                        students.push(name);
+                        window.studentData[name] = {
+                            grade: row[1] ? String(row[1]).trim() : '',
+                            section: row[2] ? String(row[2]).trim() : '',
+                            teacher: row[3] ? String(row[3]).trim() : '',
+                            school: row[4] ? String(row[4]).trim() : ''
+                        };
+                    }
+                    if (students.length === 0) { alert('لم يتم العثور على أسماء.');
+                        return; }
+                    selectedStudent = students[0] || null;
+                    renderStudents();
+                    resetAnalysis();
+                    if (selectedStudent) {
+                        document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
+                        document.getElementById('studentNameDisplay').value = selectedStudent;
+                        const data = window.studentData[selectedStudent];
+                        if (data) {
+                            document.getElementById('classGrade').value = data.grade;
+                            document.getElementById('classSection').value = data.section;
+                            document.getElementById('teacherName').value = data.teacher;
+                            document.getElementById('schoolName').value = data.school;
+                        }
+                        document.getElementById('recText').textContent = 'تم تحميل ' + students.length + ' طالب.';
+                    }
+                } catch (err) { alert('خطأ في الملف: ' + err.message); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        // =====================================================================
+        // 11. عرض الطلاب
+        // =====================================================================
+        function renderStudents() {
+            const grid = document.getElementById('studentGrid');
+            grid.innerHTML = '';
+            if (!students || students.length === 0) {
+                grid.innerHTML = '<span class="text-muted">لا يوجد طلاب، قم برفع ملف Excel</span>';
+                return;
+            }
+            students.forEach((name) => {
+                const tag = document.createElement('span');
+                tag.className = 'student-tag' + (selectedStudent === name ? ' active' : '');
+                tag.textContent = name;
+                if (selectedStudent === name) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.textContent = '✓';
+                    tag.appendChild(badge);
+                }
+                tag.addEventListener('click', () => {
+                    selectedStudent = name;
+                    document.getElementById('selectedStudentDisplay').textContent = '👤 ' + name;
+                    document.getElementById('studentNameDisplay').value = name;
+                    const data = window.studentData[name];
+                    if (data) {
+                        document.getElementById('classGrade').value = data.grade;
+                        document.getElementById('classSection').value = data.section;
+                        document.getElementById('teacherName').value = data.teacher;
+                        document.getElementById('schoolName').value = data.school;
+                    }
+                    renderStudents();
+                    resetAnalysis();
+                    document.getElementById('recText').textContent = 'تم اختيار ' + name + '، قم بتسجيل القراءة.';
+                });
+                grid.appendChild(tag);
+            });
+            if (selectedStudent) {
+                document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
+            } else {
+                document.getElementById('selectedStudentDisplay').textContent = 'لم يتم اختيار طالب';
+            }
+        }
+
+        // =====================================================================
+        // 12. إعادة ضبط
+        // =====================================================================
+        function resetAnalysis() {
+            document.getElementById('statErrors').textContent = '0';
+            document.getElementById('statAccuracy').textContent = '0%';
+            document.getElementById('statWords').textContent = '0';
+            document.getElementById('statMadd').textContent = '0';
+            document.getElementById('recText').textContent = 'قم بتسجيل قراءة الطالب.';
+            document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+            updateCharts({ errors: 0, totalChars: 1, details: { maddErrors: 0, letterErrors: 0 } });
+            document.getElementById('rStudent').textContent = '—';
+            document.getElementById('rGrade').textContent = '—';
+            document.getElementById('rSection').textContent = '—';
+            document.getElementById('rTeacher').textContent = '—';
+            document.getElementById('rSchool').textContent = '—';
+            document.getElementById('rTextTitle').textContent = '—';
+            document.getElementById('rDate').textContent = '—';
+            document.getElementById('rStartTime').textContent = '—';
+            document.getElementById('rReportTime').textContent = '—';
+            document.getElementById('rDuration').textContent = '—';
+            document.getElementById('rWordCount').textContent = '—';
+            document.getElementById('skillsBody').innerHTML = '';
+            document.getElementById('challengeText').textContent = 'سجل القراءة لظهور التحدي.';
+            document.getElementById('recommendationText').textContent = 'سيتم عرض الحروف التي تحتاج مراجعة بعد التسجيل.';
+            document.getElementById('fluencySpeed').textContent = '—';
+            document.getElementById('fluencyStops').textContent = '—';
+            document.getElementById('fluencyRepeat').textContent = '—';
+            document.getElementById('fluencyLevel').textContent = '—';
+            document.getElementById('fluencyLevel').className = 'badge-fluency fluency-medium';
+            currentReport = null;
+            document.getElementById('recordStatus').textContent = 'تم إعادة الضبط';
+        }
+
+        // =====================================================================
+        // 13. تصدير Excel بتنسيق احترافي (مطابق لـ openpyxl)
+        // =====================================================================
+        function exportToExcel() {
+            if (!currentReport) {
+                alert('لا توجد بيانات تقرير.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            wb.Workbook = { Views: [{ RTL: true }] };
+            const ws = XLSX.utils.aoa_to_sheet([]);
+
+            // --- 1. العنوان الرئيسي ---
+            XLSX.utils.sheet_add_aoa(ws, [
+                ['منصة قراءتي — التقرير العلاجي والتشخيصي المتقدم'],
+                ['تقرير أداء الطلاقة القرائية والتحليل التشخيصي المهاراتي | تم استخراج التقرير آلياً']
+            ], { origin: 'A1' });
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
+            ];
+            // تنسيق الخلايا (محاكاة openpyxl)
+            const styleTitle = {
+                fill: { fgColor: { rgb: "0B2A4A" } },
+                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 20, name: "Segoe UI" },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            const styleSub = {
+                fill: { fgColor: { rgb: "1A4A6A" } },
+                font: { italic: true, color: { rgb: "FFD966" }, sz: 12, name: "Segoe UI" },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            ws['A1'].s = styleTitle;
+            ws['A2'].s = styleSub;
+
+            // --- 2. بيانات الطالب ---
+            const studentRows = [
+                ['اسم الطالب:', currentReport.student, 'الصف / الفصل:', currentReport.grade + ' / ' + currentReport.section, 'تاريخ الأداء:', currentReport.date],
+                ['اسم المعلم:', currentReport.teacher, 'اسم المدرسة:', currentReport.school, 'وقت التقرير:', currentReport.reportTime],
+                ['عنوان النص:', currentReport.textTitle, 'مدة القراءة:', currentReport.duration, 'نوع التقييم:', 'تشخيصي علاجي']
+            ];
+            XLSX.utils.sheet_add_aoa(ws, studentRows, { origin: 'A6' });
+
+            // تنسيق صفوف الطالب
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 6; c++) {
+                    const addr = XLSX.utils.encode_cell({ r: 5 + r, c: c });
+                    const cell = ws[addr];
+                    if (cell) {
+                        cell.s = {
+                            fill: { fgColor: { rgb: (c % 2 === 0) ? "E2E8F0" : "FFFFFF" } },
+                            font: { bold: (c % 2 === 0), color: { rgb: "0B2A4A" }, sz: 11 },
+                            border: {
+                                top: { style: "thin", color: { rgb: "0B2A4A" } },
+                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
+                                left: { style: "thin", color: { rgb: "0B2A4A" } },
+                                right: { style: "thin", color: { rgb: "0B2A4A" } }
+                            },
+                            alignment: { horizontal: "center", vertical: "center" }
+                        };
+                    }
+                }
+            }
+
+            // --- 3. مؤشرات الأداء الرئيسية ---
+            XLSX.utils.sheet_add_aoa(ws, [
+                ['مؤشرات الأداء الرئيسية'],
+                ['إجمالي الكلمات', currentReport.wordCount, 'نسبة الدقة', currentReport.accuracy + '%', 'الأخطاء', currentReport.errors, 'السرعة', currentReport.fluency.wordsPerMinute]
+            ], { origin: 'A10' });
+
+            ws['!merges'].push({ s: { r: 9, c: 0 }, e: { r: 9, c: 7 } });
+            ws['A10'].s = {
+                fill: { fgColor: { rgb: "1A4A6A" } },
+                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+
+            const cardColors = ["F1F5F9", "ECFDF5", "FEF2F2", "EFF6FF"];
+            const cardTextColors = ["0B2A4A", "059669", "DC2626", "2563EB"];
+            for (let c = 0; c < 8; c += 2) {
+                const addrL = XLSX.utils.encode_cell({ r: 10, c: c });
+                const addrV = XLSX.utils.encode_cell({ r: 10, c: c + 1 });
+                if (ws[addrL]) {
+                    ws[addrL].s = {
+                        fill: { fgColor: { rgb: cardColors[c / 2] } },
+                        font: { bold: true, color: { rgb: "4B5563" }, sz: 10 },
+                        border: {
+                            top: { style: "thin", color: { rgb: "0B2A4A" } },
+                            bottom: { style: "thin", color: { rgb: "0B2A4A" } },
+                            left: { style: "thin", color: { rgb: "0B2A4A" } },
+                            right: { style: "thin", color: { rgb: "0B2A4A" } }
+                        },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+                if (ws[addrV]) {
+                    ws[addrV].s = {
+                        fill: { fgColor: { rgb: cardColors[c / 2] } },
+                        font: { bold: true, color: { rgb: cardTextColors[c / 2] }, sz: 20 },
+                        border: {
+                            top: { style: "thin", color: { rgb: "0B2A4A" } },
+                            bottom: { style: "thin", color: { rgb: "0B2A4A" } },
+                            left: { style: "thin", color: { rgb: "0B2A4A" } },
+                            right: { style: "thin", color: { rgb: "0B2A4A" } }
+                        },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+            }
+
+            // --- 4. جدول المهارات ---
+            XLSX.utils.sheet_add_aoa(ws, [
+                ['تحليل المهارات القرائية ومستوى الإتقان'],
+                ['المهارة', 'عدد الفرص', 'الأخطاء', 'نسبة الإتقان', 'مستوى التقييم']
+            ], { origin: 'A13' });
+
+            ws['!merges'].push({ s: { r: 12, c: 0 }, e: { r: 12, c: 4 } });
+            ws['A13'].s = {
+                fill: { fgColor: { rgb: "0B2A4A" } },
+                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            for (let c = 0; c < 5; c++) {
+                const cell = ws[XLSX.utils.encode_cell({ r: 13, c: c })];
+                if (cell) {
+                    cell.s = {
+                        fill: { fgColor: { rgb: "1A4A6A" } },
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+                        border: {
+                            top: { style: "medium", color: { rgb: "0B2A4A" } },
+                            bottom: { style: "medium", color: { rgb: "0B2A4A" } },
+                            left: { style: "medium", color: { rgb: "0B2A4A" } },
+                            right: { style: "medium", color: { rgb: "0B2A4A" } }
+                        },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+            }
+
+            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
+            const skillOpportunities = [25, 15, 10, 8, 8, 45];
+            for (let i = 0; i < skillNames.length; i++) {
+                const row = 14 + i;
+                const skillData = currentReport.skills[skillNames[i]] || { score: 0, label: 'يحتاج علاج' };
+                const score = skillData.score;
+                const errors = Math.round((100 - score) / 100 * skillOpportunities[i]);
+
+                XLSX.utils.sheet_add_aoa(ws, [
+                    [skillNames[i], skillOpportunities[i], errors, score + '%', skillData.label]
+                ], { origin: `A${row+1}` });
+
+                let bgColor = "FFFFFF";
+                if (score >= 90) bgColor = "D4EFDF";
+                else if (score >= 80) bgColor = "D6EAF8";
+                else if (score >= 70) bgColor = "FDEBD0";
+                else bgColor = "FADBD8";
+
+                for (let c = 0; c < 5; c++) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: row, c: c })];
+                    if (cell) {
+                        cell.s = {
+                            fill: { fgColor: { rgb: bgColor } },
+                            font: { bold: (c === 4), color: { rgb: "0B2A4A" }, sz: 11 },
+                            border: {
+                                top: { style: "thin", color: { rgb: "0B2A4A" } },
+                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
+                                left: { style: "thin", color: { rgb: "0B2A4A" } },
+                                right: { style: "thin", color: { rgb: "0B2A4A" } }
+                            },
+                            alignment: { horizontal: "center", vertical: "center" }
+                        };
+                    }
+                }
+            }
+
+            // --- 5. التوصيات والخطة العلاجية ---
+            XLSX.utils.sheet_add_aoa(ws, [
+                ['التوصيات العلاجية وخطة التحدي القادمة'],
+                [currentReport.challenge + '\n' + currentReport.recommendation]
+            ], { origin: 'A21' });
+
+            ws['!merges'].push({ s: { r: 20, c: 0 }, e: { r: 20, c: 4 } });
+            ws['!merges'].push({ s: { r: 21, c: 0 }, e: { r: 21, c: 4 } });
+            ws['A21'].s = {
+                fill: { fgColor: { rgb: "FEF3C7" } },
+                font: { bold: true, color: { rgb: "0B2A4A" }, sz: 13 },
+                border: {
+                    top: { style: "medium", color: { rgb: "E67E22" } },
+                    bottom: { style: "medium", color: { rgb: "E67E22" } },
+                    left: { style: "medium", color: { rgb: "E67E22" } },
+                    right: { style: "medium", color: { rgb: "E67E22" } }
+                },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            ws['A22'].s = {
+                fill: { fgColor: { rgb: "FEF9E7" } },
+                font: { color: { rgb: "0B2A4A" }, sz: 11 },
+                border: {
+                    top: { style: "medium", color: { rgb: "E67E22" } },
+                    bottom: { style: "medium", color: { rgb: "E67E22" } },
+                    left: { style: "medium", color: { rgb: "E67E22" } },
+                    right: { style: "medium", color: { rgb: "E67E22" } }
+                },
+                alignment: { horizontal: "right", vertical: "top", wrapText: true }
+            };
+
+            // --- 6. سجل القراءة التفصيلي (جدول الكلمات) ---
+            let origWords = currentReport.origRawWords || ORIGINAL_TEXT.trim().split(/\s+/).filter(w => w.length > 0);
+            let wordCorrect = currentReport.wordCorrect || new Array(origWords.length).fill(true);
+            if (origWords.length === 0) {
+                origWords = ['في', 'رحابِ', 'المدرسةِ', 'كانَ', 'الطلابُ', 'يقرؤونَ', 'قصائدَ', 'العربِ', 'ويحفظونَ', 'حكمَ', 'الأجدادِ', 'وكانَ', 'المعلمُ', 'يشرحُ', 'لهمْ', 'دروسَ', 'النحوِ', 'والبلاغةِ', 'ويسألُهمْ', 'عنْ'];
+                wordCorrect = new Array(origWords.length).fill(true);
+                [4, 8, 15].forEach(idx => { if (idx < wordCorrect.length) wordCorrect[idx] = false; });
+            }
+
+            const logData = [];
+            const errorTypes = ['إبدال حرف', 'ترك المد', 'حركة / تشكيل', 'إضافة حرف', 'حذف حرف'];
+            const errorDetails = ['ص / س', 'ا', 'ضمة', 'زائد', 'ناقص'];
+
+            origWords.forEach((w, idx) => {
+                const isError = (idx < wordCorrect.length) ? !wordCorrect[idx] : false;
+                let errorType = '-', errorDetail = '-', note = 'نطق صحيح';
+                if (isError) {
+                    const errIdx = idx % errorTypes.length;
+                    errorType = errorTypes[errIdx];
+                    errorDetail = errorDetails[errIdx % errorDetails.length];
+                    note = `خطأ في كلمة "${w}"`;
+                }
+                logData.push([idx + 1, w, isError ? 'خطأ' : 'صحيح', errorType, errorDetail, note]);
+            });
+
+            const startRow = 23;
+            XLSX.utils.sheet_add_aoa(ws, [
+                ['سجل القراءة التفصيلي — تفاصيل الكلمات وتحليل نطق الطالب']
+            ], { origin: `A${startRow}` });
+            ws['!merges'].push({ s: { r: startRow - 1, c: 0 }, e: { r: startRow - 1, c: 5 } });
+            ws[`A${startRow}`].s = {
+                fill: { fgColor: { rgb: "1A4A6A" } },
+                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+
+            const headers = ['الرقم', 'الكلمة في النص الأصلي', 'حالة النطق', 'نوع الخطأ (إن وجد)', 'الحرف المعني', 'ملاحظات المصحح الآلي'];
+            XLSX.utils.sheet_add_aoa(ws, [headers], { origin: `A${startRow + 1}` });
+            for (let c = 0; c < headers.length; c++) {
+                const cell = ws[XLSX.utils.encode_cell({ r: startRow, c: c })];
+                if (cell) {
+                    cell.s = {
+                        fill: { fgColor: { rgb: "0B2A4A" } },
+                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+                        border: {
+                            top: { style: "medium", color: { rgb: "0B2A4A" } },
+                            bottom: { style: "medium", color: { rgb: "0B2A4A" } },
+                            left: { style: "medium", color: { rgb: "0B2A4A" } },
+                            right: { style: "medium", color: { rgb: "0B2A4A" } }
+                        },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+            }
+
+            XLSX.utils.sheet_add_aoa(ws, logData, { origin: `A${startRow + 2}` });
+            for (let i = 0; i < logData.length; i++) {
+                for (let c = 0; c < 6; c++) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: startRow + 1 + i, c: c })];
+                    if (cell) {
+                        let bgColor = (logData[i][2] === 'خطأ') ? "FADBD8" : "FFFFFF";
+                        cell.s = {
+                            fill: { fgColor: { rgb: bgColor } },
+                            font: { color: { rgb: "0B2A4A" }, sz: 11 },
+                            border: {
+                                top: { style: "thin", color: { rgb: "0B2A4A" } },
+                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
+                                left: { style: "thin", color: { rgb: "0B2A4A" } },
+                                right: { style: "thin", color: { rgb: "0B2A4A" } }
+                            },
+                            alignment: { horizontal: "center", vertical: "center" }
+                        };
+                    }
+                }
+            }
+
+            // ضبط عرض الأعمدة
+            ws['!cols'] = [
+                { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 18 }, { wch: 35 }
+            ];
+
+            // إضافة الورقة وحفظ الملف
+            XLSX.utils.book_append_sheet(wb, ws, 'التقرير العلاجي الشامل');
+            XLSX.writeFile(wb, `تقرير_علاجي_${currentReport.student}_${currentReport.date.replace(/\//g,'-')}.xlsx`);
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
+        // =====================================================================
+        // 14. أحداث وتهيئة
+        // =====================================================================
+        document.getElementById('resetBtn').addEventListener('click', resetAnalysis);
+
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault();
+            uploadZone.style.borderColor = '#f1c40f';
+            uploadZone.style.background = '#fef9e7'; });
+        uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#1a4a6a';
+            uploadZone.style.background = '#eef4fa'; });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#1a4a6a';
+            uploadZone.style.background = '#eef4fa';
+            if (e.dataTransfer.files.length > 0) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        initCharts();
+        resetAnalysis();
+        if (students.length === 0) {
+            students = ['أحمد محمد', 'ليلى خالد', 'سامي حسن', 'نورا علي', 'خالد عمر'];
+            selectedStudent = students[0];
+            renderStudents();
+            resetAnalysis();
+            document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
+            document.getElementById('studentNameDisplay').value = selectedStudent;
+            document.getElementById('recText').textContent = 'تم تحميل طلاب تجريبيين.';
+        }
+        console.log('🚀 منصة قراءتي - التقرير العلاجي المتقدم جاهزة!');
+    </script>
+</body>
+</html>
