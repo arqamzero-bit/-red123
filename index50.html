@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة قراءتي - التقرير العلاجي المتقدم</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منصة قراءتي - تقييم القراءة</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js">
+    </script>
+
+    <!-- Chart.js & XLSX -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
     </script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js">
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js">
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
     <style>
-        /* نفس الأنماط السابقة – لم تتغير */
         * {
             margin: 0;
             padding: 0;
@@ -117,52 +123,219 @@
             color: #0b2a4a;
             font-weight: 600;
         }
+        .nav-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #eef4fa;
+            border-radius: 16px;
+            border: 2px solid #b8cbd9;
+            margin-bottom: 16px;
+        }
+        .nav-bar label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #0b2a4a;
+            white-space: nowrap;
+        }
+        .nav-bar select {
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 2px solid #b8cbd9;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            background: #fff;
+            color: #0b2a4a;
+            min-width: 100px;
+            cursor: pointer;
+        }
+        .nav-bar .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: auto;
+        }
+        .nav-bar .nav-buttons button {
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 2px solid #1a4a6a;
+            background: #fff;
+            color: #1a4a6a;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-bar .nav-buttons button:hover {
+            background: #1a4a6a;
+            color: #fff;
+        }
+        .nav-bar .nav-buttons button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .nav-bar .nav-buttons .student-counter {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0b2a4a;
+            padding: 0 8px;
+            min-width: 80px;
+            text-align: center;
+        }
+        .nav-bar .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-bar .action-buttons button {
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-save {
+            background: #27ae60;
+            color: #fff;
+        }
+        .btn-save:hover {
+            background: #1e8449;
+            transform: scale(1.03);
+        }
+        .btn-export {
+            background: #1a4a6a;
+            color: #fff;
+        }
+        .btn-export:hover {
+            background: #0b2a4a;
+            transform: scale(1.03);
+        }
+        .btn-export-all {
+            background: #8e44ad;
+            color: #fff;
+        }
+        .btn-export-all:hover {
+            background: #6c3483;
+            transform: scale(1.03);
+        }
+        .btn-add {
+            background: #27ae60;
+            color: #fff;
+        }
+        .btn-add:hover {
+            background: #1e8449;
+            transform: scale(1.03);
+        }
+        .btn-delete {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
+            transform: scale(1.03);
+        }
+        .btn-reset {
+            background: #95a5a6;
+            color: #fff;
+        }
+        .btn-reset:hover {
+            background: #7f8c8d;
+            transform: scale(1.03);
+        }
+        .btn-import {
+            background: #f39c12;
+            color: #fff;
+        }
+        .btn-import:hover {
+            background: #d68910;
+            transform: scale(1.03);
+        }
+        .btn-eval {
+            background: #2e86de;
+            color: #fff;
+        }
+        .btn-eval:hover {
+            background: #1a5276;
+            transform: scale(1.03);
+        }
         .student-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             margin-top: 6px;
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             padding: 4px 2px;
         }
-        .student-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-        .student-grid::-webkit-scrollbar-thumb {
-            background: #b8cbd9;
-            border-radius: 10px;
-        }
         .student-tag {
             background: #dce6f0;
-            padding: 8px 22px;
-            border-radius: 40px;
+            padding: 6px 18px;
+            border-radius: 30px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #0b2a4a;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.15s;
             border: 2px solid transparent;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
         }
         .student-tag:hover {
             background: #b8cbd9;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         .student-tag.active {
             background: #0b2a4a;
             color: #fff;
             border-color: #ffd966;
-            box-shadow: 0 6px 14px rgba(11, 42, 74, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 42, 74, 0.25);
         }
         .student-tag .badge {
             background: #ffd966;
             color: #0b2a4a;
             border-radius: 40px;
-            padding: 0 10px;
-            font-size: 0.7rem;
-            margin-right: 6px;
+            padding: 0 8px;
+            font-size: 0.65rem;
             font-weight: 700;
+        }
+        .student-tag .delete-icon {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .student-tag .delete-icon:hover {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .student-tag .class-badge {
+            font-size: 0.65rem;
+            background: rgba(0, 0, 0, 0.08);
+            padding: 0 8px;
+            border-radius: 20px;
+            color: #555;
+        }
+        .student-tag.active .class-badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ddd;
         }
         .record-wrapper {
             display: flex;
@@ -197,16 +370,14 @@
             animation: pulse 1.2s infinite;
             box-shadow: 0 0 0 8px rgba(192, 57, 43, 0.25);
         }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
+        .record-btn.processing {
+            background: radial-gradient(circle at 30% 30%, #f9e79f, #f39c12);
+            color: #fff;
+            animation: pulse 0.8s infinite;
+        }
+        .record-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .record-status {
             font-size: 1rem;
@@ -217,6 +388,62 @@
             border-radius: 40px;
             backdrop-filter: blur(4px);
             border: 1px solid #b8cbd9;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .record-status .status-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #95a5a6;
+            margin-left: 6px;
+            transition: 0.2s;
+        }
+        .record-status .status-dot.idle {
+            background: #95a5a6;
+        }
+        .record-status .status-dot.listening {
+            background: #f39c12;
+            animation: blink 0.8s infinite;
+        }
+        .record-status .status-dot.speaking {
+            background: #27ae60;
+            animation: blink 0.5s infinite;
+        }
+        .record-status .status-dot.processing {
+            background: #2e86de;
+            animation: blink 0.3s infinite;
+        }
+        .record-status .status-dot.success {
+            background: #27ae60;
+        }
+        .record-status .status-dot.error {
+            background: #e74c3c;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
         .text-display {
             background: #f8fcff;
@@ -239,34 +466,6 @@
             color: #0b2a4a;
             font-weight: bold;
         }
-        .file-upload-text {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            background: #eef4fa;
-            padding: 12px 20px;
-            border-radius: 60px;
-        }
-        .file-upload-text label {
-            background: #1a4a6a;
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .file-upload-text label:hover {
-            background: #0b2a4a;
-            transform: scale(1.02);
-        }
-        .file-upload-text input {
-            display: none;
-        }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -279,7 +478,6 @@
             padding: 14px 12px;
             text-align: center;
             border: 2px solid #b8cbd9;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
         }
         .stat-item .num {
             font-size: 2rem;
@@ -305,13 +503,23 @@
                 align-items: flex-start;
                 gap: 12px;
             }
+            .nav-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav-bar .nav-buttons {
+                margin-right: 0;
+                justify-content: center;
+            }
+            .nav-bar .action-buttons {
+                justify-content: center;
+            }
         }
         .chart-box {
             background: #ffffff;
             border-radius: 18px;
             padding: 16px;
             border: 2px solid #b8cbd9;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
         }
         .chart-box canvas {
             max-height: 200px;
@@ -335,15 +543,10 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 10px;
         }
         .mt-2 {
             margin-top: 12px;
-        }
-        .mb-1 {
-            margin-bottom: 8px;
-        }
-        .text-muted {
-            color: #5f7d94;
         }
         .form-grid {
             display: grid;
@@ -360,11 +563,9 @@
             font-family: inherit;
             background: #f8fcff;
             width: 100%;
-            transition: 0.2s;
         }
         .form-grid input:focus {
             border-color: #1a4a6a;
-            box-shadow: 0 0 0 3px rgba(26, 74, 106, 0.1);
         }
         .form-grid label {
             font-size: 0.9rem;
@@ -380,7 +581,6 @@
             font-size: 0.95rem;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         .report-table th {
             background: #0b2a4a;
@@ -388,7 +588,6 @@
             padding: 14px 12px;
             text-align: center;
             font-weight: 700;
-            font-size: 1rem;
             border: 2px solid #1a4a6a;
         }
         .report-table td {
@@ -400,9 +599,6 @@
         }
         .report-table tr:nth-child(even) td {
             background: #eef4fa;
-        }
-        .report-table tr:last-child td {
-            border-bottom: 2px solid #b8cbd9;
         }
         .level-badge {
             display: inline-block;
@@ -440,145 +636,6 @@
             margin-top: 10px;
             border: 2px solid #e67e22;
         }
-        .challenge-box i {
-            color: #e67e22;
-            margin-left: 8px;
-        }
-        #exportBtn {
-            background: #1a7a4a;
-            color: #fff;
-            border: none;
-            padding: 10px 28px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 700;
-            transition: 0.2s;
-            box-shadow: 0 4px 8px rgba(26, 122, 74, 0.3);
-        }
-        #exportBtn:hover {
-            background: #0e5f35;
-            transform: scale(1.03);
-            box-shadow: 0 6px 12px rgba(26, 122, 74, 0.4);
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #e6ecf3;
-            border-radius: 12px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #b0c7da;
-            border-radius: 12px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #8aa9c2;
-        }
-        .file-label-icon {
-            background: #1a4a6a;
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 8px rgba(26, 74, 106, 0.25);
-        }
-        .file-label-icon:hover {
-            background: #0b2a4a;
-            transform: translateY(-2px);
-        }
-        .file-label-icon i {
-            font-size: 1.2rem;
-        }
-        .play-correct-btn {
-            background: #27ae60;
-            color: #fff;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.25);
-        }
-        .play-correct-btn:hover {
-            background: #1e8449;
-            transform: scale(1.03);
-        }
-        .play-correct-btn i {
-            font-size: 1.2rem;
-        }
-        .play-correct-btn.playing {
-            background: #e67e22;
-            animation: pulse-audio 1s infinite;
-        }
-        @keyframes pulse-audio {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
-            100% {
-                opacity: 1;
-            }
-        }
-        .report-header {
-            background: linear-gradient(135deg, #e8f0f8, #d5e2f0);
-            padding: 20px;
-            border-radius: 18px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px;
-            border: 2px solid #1a4a6a;
-        }
-        .report-header div {
-            font-size: 0.95rem;
-            padding: 4px 0;
-        }
-        .report-header strong {
-            color: #0b2a4a;
-            display: block;
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-bottom: 2px;
-            font-weight: 700;
-        }
-        .report-header span {
-            font-weight: 600;
-            color: #0b2a4a;
-        }
-        .fluency-box {
-            background: #eaf4fa;
-            border-radius: 16px;
-            padding: 16px 22px;
-            margin: 12px 0;
-            border-right: 6px solid #1a4a6a;
-            border: 2px solid #1a4a6a;
-        }
-        .fluency-box .title {
-            font-weight: 700;
-            color: #0b2a4a;
-            font-size: 1.1rem;
-        }
-        .fluency-box .level {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin: 4px 0;
-        }
         .recommendation-box {
             background: #fef6e6;
             border-radius: 16px;
@@ -586,10 +643,6 @@
             border-right: 6px solid #e67e22;
             margin-top: 10px;
             border: 2px solid #e67e22;
-        }
-        .recommendation-box strong {
-            color: #a35f00;
-            font-weight: 700;
         }
         .badge-fluency {
             display: inline-block;
@@ -624,67 +677,426 @@
             color: #fff;
             border-color: #922b21;
         }
+        .sync-status {
+            font-size: 0.8rem;
+            padding: 4px 14px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .sync-status.online {
+            background: rgba(39, 174, 96, 0.25);
+            border-color: #27ae60;
+        }
+        .sync-status.offline {
+            background: rgba(231, 76, 60, 0.25);
+            border-color: #e74c3c;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0 10px 0;
+            color: #5f7d94;
+            font-size: 0.95rem;
+            border-top: 1px solid #dce6f0;
+            margin-top: 10px;
+        }
+        .footer i {
+            color: #c0392b;
+            margin: 0 4px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0b2a4a;
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            background: #27ae60;
+        }
+        .toast.error {
+            background: #e74c3c;
+        }
+        .toast.info {
+            background: #1a4a6a;
+        }
+        .report-header {
+            background: linear-gradient(135deg, #e8f0f8, #d5e2f0);
+            padding: 20px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            border: 2px solid #1a4a6a;
+        }
+        .report-header div {
+            font-size: 0.95rem;
+            padding: 4px 0;
+        }
+        .report-header strong {
+            color: #0b2a4a;
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 2px;
+        }
+        .report-header span {
+            font-weight: 600;
+            color: #0b2a4a;
+        }
+        .fluency-box {
+            background: #eaf4fa;
+            border-radius: 16px;
+            padding: 16px 22px;
+            margin: 12px 0;
+            border-right: 6px solid #1a4a6a;
+            border: 2px solid #1a4a6a;
+        }
+        .fluency-box .title {
+            font-weight: 700;
+            color: #0b2a4a;
+            font-size: 1.1rem;
+        }
+        .comparison-box {
+            background: #f0f8ff;
+            border-radius: 16px;
+            padding: 16px 22px;
+            border-right: 6px solid #2e86de;
+            margin-top: 10px;
+            border: 2px solid #2e86de;
+            font-family: 'Times New Roman', 'Amiri', serif;
+            font-size: 1.1rem;
+            line-height: 2;
+        }
+        .comparison-box .label {
+            font-weight: 700;
+            color: #0b2a4a;
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+        .comparison-box .error-word {
+            background: #e74c3c;
+            color: #fff;
+            padding: 0 6px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .comparison-box .correct-word {
+            background: #27ae60;
+            color: #fff;
+            padding: 0 6px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .file-label-icon {
+            background: #1a4a6a;
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .file-label-icon:hover {
+            background: #0b2a4a;
+            transform: scale(1.03);
+        }
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #fdedec;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 2px solid #e74c3c;
+            margin: 8px 0;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+
+        /* تقييم القراءة */
+        .eval-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 760px) {
+            .eval-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .eval-section {
+            background: #f8fcff;
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 2px solid #b8cbd9;
+        }
+        .eval-section h3 {
+            color: #0b2a4a;
+            border-bottom: 3px solid #1a4a6a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .eval-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .eval-table th {
+            background: #1a4a6a;
+            color: #fff;
+            padding: 6px 4px;
+            border: 1px solid #1a4a6a;
+            font-size: 0.8rem;
+        }
+        .eval-table td {
+            border: 1px solid #b8cbd9;
+            padding: 4px 2px;
+            font-size: 0.8rem;
+        }
+        .eval-table .skill-name {
+            text-align: right;
+            padding-right: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .eval-table input[type="radio"] {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+        .eval-table .total-row {
+            font-weight: 700;
+            background: #eef4fa;
+        }
+        .eval-table .total-row td {
+            border-top: 3px solid #1a4a6a;
+        }
+        .eval-input {
+            width: 60px;
+            padding: 4px;
+            border: 2px solid #b8cbd9;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .eval-input:focus {
+            border-color: #1a4a6a;
+            outline: none;
+        }
+        .result-box {
+            background: #eaf4fa;
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 2px solid #1a4a6a;
+            margin-top: 12px;
+        }
+        .result-box .level-badge {
+            font-size: 1rem;
+            padding: 6px 24px;
+        }
+        .btn-export-eval {
+            background: #2e86de;
+            color: #fff;
+        }
+        .btn-export-eval:hover {
+            background: #1a5276;
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            .card {
+                padding: 16px;
+            }
+            .nav-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .nav-bar .nav-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .nav-bar .action-buttons {
+                justify-content: center;
+            }
+            .student-tag {
+                font-size: 0.8rem;
+                padding: 4px 12px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            .report-header {
+                grid-template-columns: 1fr 1fr;
+            }
+            .eval-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .student-tag {
+                border: 1px solid #000;
+            }
+            .report-table th {
+                background: #eee !important;
+                color: #000 !important;
+                border: 1px solid #000 !important;
+            }
+            .report-table td {
+                border: 1px solid #000 !important;
+            }
+        }
     </style>
 </head>
 <body>
+
     <div class="container">
 
         <header class="header">
             <h1><i class="fas fa-book-open"></i> منصة قراءتي</h1>
-            <span class="subtitle"><i class="fas fa-file-medical-alt"></i> تقرير علاجي متقدم</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span class="subtitle"><i class="fas fa-microphone"></i> تقييم القراءة</span>
+                <span class="sync-status" id="syncStatus"><i class="fas fa-circle"></i> جارٍ التحميل…</span>
+            </div>
         </header>
 
+        <!-- بيانات الطالب -->
         <div class="card">
-            <div class="card-title"><i class="fas fa-edit"></i> بيانات التقرير</div>
+            <div class="card-title"><i class="fas fa-user-graduate"></i> بيانات الطالب</div>
             <div class="form-grid">
-                <div><label><i class="fas fa-user-graduate"></i> اسم الطالب</label><input type="text" id="studentNameDisplay" placeholder="سيتم تعبئته تلقائياً" disabled style="background:#eef4f9;"></div>
+                <div><label><i class="fas fa-user"></i> اسم الطالب</label><input type="text" id="studentNameDisplay" disabled style="background:#eef4f9;"></div>
                 <div><label><i class="fas fa-chalkboard"></i> الصف</label><input type="text" id="classGrade" placeholder="مثال: رابع ابتدائي"></div>
-                <div><label><i class="fas fa-users"></i> الفصل</label><input type="text" id="classSection" placeholder="مثال: 2"></div>
-                <div><label><i class="fas fa-chalkboard-teacher"></i> اسم المعلم</label><input type="text" id="teacherName" placeholder="أدخل اسم المعلم"></div>
-                <div><label><i class="fas fa-school"></i> اسم المدرسة</label><input type="text" id="schoolName" placeholder="اسم المدرسة"></div>
-                <div><label><i class="fas fa-heading"></i> عنوان النص</label><input type="text" id="textTitle" placeholder="عنوان النص (اختياري)"></div>
+                <div><label><i class="fas fa-users"></i> الفصل</label><input type="text" id="classSection" placeholder="مثال: 6B"></div>
+                <div><label><i class="fas fa-chalkboard-teacher"></i> المعلم</label><input type="text" id="teacherName" placeholder="اسم المعلم"></div>
+                <div><label><i class="fas fa-school"></i> المدرسة</label><input type="text" id="schoolName" placeholder="اسم المدرسة"></div>
+                <div><label><i class="fas fa-heading"></i> عنوان النص</label><input type="text" id="textTitle" placeholder="عنوان النص"></div>
             </div>
         </div>
 
+        <!-- شريط التنقل -->
+        <div class="nav-bar no-print" id="navBar">
+            <label for="classFilter"><i class="fas fa-users"></i> الفصل:</label>
+            <select id="classFilter" onchange="filterStudentsByClass()">
+                <option value="الكل">جميع الفصول</option>
+            </select>
+
+            <div class="nav-buttons">
+                <button id="prevStudentBtn" onclick="navigateStudent(-1)" disabled><i class="fas fa-chevron-right"></i> السابق</button>
+                <span class="student-counter" id="studentCounter">0 / 0</span>
+                <button id="nextStudentBtn" onclick="navigateStudent(1)" disabled>التالي <i class="fas fa-chevron-left"></i></button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-save" onclick="saveCurrentStudent()"><i class="fas fa-save"></i> حفظ</button>
+                <button class="btn-import" id="smartImportBtn"><i class="fas fa-file-import"></i> استيراد</button>
+                <button class="btn-export" onclick="exportCurrentStudentExcel()"><i class="fas fa-file-excel"></i> تقرير الطالب</button>
+                <button class="btn-export-all" onclick="exportAllStudentsExcel()"><i class="fas fa-file-excel"></i> تقرير الفصل</button>
+                <button class="btn-export-all" onclick="exportComprehensiveExcel()"><i class="fas fa-file-excel"></i> تقرير شامل</button>
+                <button class="btn-eval" onclick="exportReadingEvaluation()"><i class="fas fa-clipboard-list"></i> تقييم القراءة</button>
+                <button class="btn-add" onclick="addStudent()"><i class="fas fa-user-plus"></i> إضافة</button>
+                <button class="btn-delete" onclick="deleteCurrentStudent()"><i class="fas fa-trash"></i> حذف</button>
+                <button class="btn-reset" onclick="resetAnalysis()"><i class="fas fa-undo-alt"></i> إعادة ضبط</button>
+            </div>
+        </div>
+
+        <!-- قائمة الطلاب -->
         <div class="card">
-            <div class="card-title"><i class="fas fa-users"></i> الطلاب</div>
-            <div class="upload-zone" id="uploadZone">
+            <div class="card-title"><i class="fas fa-users"></i> قائمة الطلاب <span style="font-size:0.8rem;font-weight:400;color:#5f7d94;margin-right:auto;" id="studentCountLabel">(0)</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;" class="no-print">
+                <button class="btn-import" id="smartImportBtn2" style="padding:10px 24px;font-size:1rem;"><i class="fas fa-file-import"></i> استيراد من Excel</button>
+                <button class="btn-export" onclick="exportAllStudentsJSON()" style="padding:10px 24px;font-size:1rem;"><i class="fas fa-download"></i> تصدير JSON</button>
+                <button class="btn-delete" onclick="deleteAllStudents()" style="padding:10px 24px;font-size:1rem;"><i class="fas fa-trash-alt"></i> حذف الكل</button>
+            </div>
+            <input type="file" id="smartFileInput" accept=".xlsx,.xls,.csv" style="display:none;" />
+            <div class="upload-zone no-print" id="uploadZone">
                 <i class="fas fa-file-excel"></i>
-                <p>ارفع ملف Excel يحتوي على: الاسم، الصف، الفصل، المعلم، المدرسة (العمود الأول إلزامي)</p>
-                <input type="file" id="fileInput" accept=".xlsx,.xls">
+                <p>ارفع ملف Excel (يتعرف على الأسماء والفصول)</p>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" />
             </div>
             <div id="studentListContainer" class="mt-2">
-                <div class="student-grid" id="studentGrid"><span class="text-muted" style="padding:8px 0;">لم يتم رفع ملف بعد</span></div>
+                <div class="student-grid" id="studentGrid"><span class="text-muted" style="padding:8px 0;">لا يوجد طلاب</span></div>
             </div>
-            <div class="flex-between mt-2">
+            <div class="flex-between mt-2 no-print">
                 <span id="selectedStudentDisplay" class="text-muted">لم يتم اختيار طالب</span>
-                <button id="resetBtn" class="student-tag" style="background:#e8edf4;border:none;"><i class="fas fa-undo-alt"></i> إعادة ضبط</button>
             </div>
         </div>
 
+        <!-- النص والتسجيل -->
         <div class="card">
             <div class="card-title"><i class="fas fa-scroll"></i> النص المقروء
                 <span style="margin-right:auto;"></span>
-                <span class="file-label-icon" id="uploadTextBtn"><i class="fas fa-file-upload"></i> رفع نص جديد</span>
-                <input type="file" id="textFileInput" accept=".txt,.docx,.pdf,.xlsx,.xls" style="display:none;">
-                <button class="play-correct-btn" id="playCorrectBtn" title="استمع إلى النص مقروءاً بصحيح">
-                    <i class="fas fa-headphones"></i> تصحيح الأخطاء
-                </button>
+                <span class="file-label-icon no-print" id="uploadTextBtn"><i class="fas fa-file-upload"></i> رفع نص</span>
+                <input type="file" id="textFileInput" accept=".txt,.docx,.pdf" style="display:none;" />
+                <button class="btn-reset no-print" id="resetMicBtn" style="font-size:0.8rem;padding:4px 12px;"><i class="fas fa-sync-alt"></i> إعادة تهيئة الميكروفون</button>
             </div>
             <div class="text-display" id="textDisplay">
                 <span id="originalText">في رحاب المدرسةِ، كانَ الطلابُ يقرؤونَ قصائدَ العربِ، ويحفظونَ حكمَ الأجدادِ. وكانَ المعلمُ يشرحُ لهمْ دروسَ النحوِ والبلاغةِ، ويسألُهمْ عنْ معاني الكلماتِ. فأجابَ خالدٌ: "العلمُ نورٌ"، وقالتْ ليلى: "القراءةُ غذاءُ الروحِ". فرحَ المعلمُ بطلابِهِ، وتمنى لهمْ مستقبلًا زاهرًا.</span>
             </div>
+
+            <!-- زر التسجيل المباشر -->
             <div class="record-wrapper">
-                <button class="record-btn" id="recordBtn"><i class="fas fa-microphone"></i></button>
-                <div class="record-status" id="recordStatus">اضغط للتسجيل (يسجل حتى مع السكوت)</div>
+                <button class="record-btn no-print" id="recordBtn"><i class="fas fa-microphone"></i></button>
+                <div class="record-status" id="recordStatus">
+                    <span class="status-dot idle" id="statusDot"></span>
+                    <span id="statusText">جاهز للتسجيل</span>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+                    <button class="btn-save no-print" id="retryBtn" style="display:none;font-size:0.9rem;padding:6px 20px;"><i class="fas fa-redo"></i> إعادة القراءة</button>
+                    <button class="btn-delete no-print" id="stopRecordingBtn" style="display:none;font-size:0.9rem;padding:6px 20px;"><i class="fas fa-stop"></i> إيقاف التسجيل</button>
+                </div>
+                <div id="browserSupportMsg" class="error-message"></div>
             </div>
         </div>
 
+        <!-- التحليل -->
         <div class="card">
-            <div class="card-title flex-between">
-                <span><i class="fas fa-chart-bar"></i> تحليل القراءة التفصيلي</span>
-                <button id="exportBtn"><i class="fas fa-file-excel"></i> تصدير تقرير Excel</button>
-            </div>
+            <div class="card-title flex-between"><span><i class="fas fa-chart-bar"></i> تحليل القراءة</span></div>
             <div id="statsContainer">
                 <div class="stats-grid">
                     <div class="stat-item"><div class="num" id="statErrors">0</div><div class="label">أخطاء</div></div>
@@ -696,12 +1108,17 @@
                     <div class="chart-box"><canvas id="chartErrors"></canvas></div>
                     <div class="chart-box"><canvas id="chartLetters"></canvas></div>
                 </div>
+                <div class="comparison-box" id="comparisonBox">
+                    <div class="label"><i class="fas fa-exchange-alt"></i> مقارنة النص المقروء بالنص الأصلي</div>
+                    <div id="comparisonContent" style="margin-top:8px;">لم يتم تسجيل قراءة بعد.</div>
+                </div>
                 <div class="rec-box" id="recBox">
                     <strong><i class="fas fa-lightbulb"></i> التوصيات:</strong> <span id="recText">قم بتسجيل قراءة الطالب لتحليلها.</span>
                 </div>
             </div>
         </div>
 
+        <!-- التقرير -->
         <div class="card" id="reportCard">
             <div class="card-title"><i class="fas fa-file-medical-alt"></i> تقرير تشخيصي علاجي متكامل</div>
             <div id="reportContent">
@@ -727,53 +1144,600 @@
                 <div class="fluency-box" id="fluencyBox">
                     <div class="title"><i class="fas fa-tachometer-alt"></i> تحليل الطلاقة القرائية</div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px;">
-                        <div><strong>السرعة:</strong> <span id="fluencySpeed">—</span> كلمة/دقيقة</div>
+                        <div><strong>السرعة:</strong> <span id="fluencySpeed">—</span> ك/د</div>
                         <div><strong>التوقفات:</strong> <span id="fluencyStops">—</span></div>
                         <div><strong>التكرار:</strong> <span id="fluencyRepeat">—</span></div>
                         <div><strong>المستوى:</strong> <span id="fluencyLevel" class="badge-fluency fluency-medium">—</span></div>
                     </div>
                 </div>
                 <div class="challenge-box" id="challengeBox">
-                    <i class="fas fa-bullseye"></i> <strong>🎯 التحدي التالي للطالب:</strong>
-                    <span id="challengeText">سجل قراءة الطالب لظهور التحدي المناسب.</span>
+                    <i class="fas fa-bullseye"></i> <strong>🎯 التحدي التالي:</strong> <span id="challengeText">سجل قراءة الطالب لظهور التحدي.</span>
                 </div>
                 <div class="recommendation-box" id="recommendationBox">
-                    <strong><i class="fas fa-notes-medical"></i> توصيات علاجية (مراجعة حروف):</strong>
-                    <span id="recommendationText">سيتم عرض الحروف التي تحتاج مراجعة بعد التسجيل.</span>
+                    <strong><i class="fas fa-notes-medical"></i> توصيات علاجية:</strong> <span id="recommendationText">سيتم عرض الحروف التي تحتاج مراجعة بعد التسجيل.</span>
                 </div>
             </div>
         </div>
+
+        <div class="footer"><i class="fas fa-copyright"></i> جميع الحقوق محفوظة © المعلم محمد رضا عوف</div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script>
-        // =====================================================================
-        // 1. الإعدادات الأساسية والمتغيرات العامة
-        // =====================================================================
-        let students = [];
-        let selectedStudent = null;
-        let isRecording = false;
+        // ================================================================
+        // 0. Firebase (نفس السابق)
+        // ================================================================
+        (function initFirebase() {
+            try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCTWBhTDqPdwfzzOxODFFssmaKvB7R_wP8",
+                    authDomain: "smart-reading-by-mohamed.firebaseapp.com",
+                    projectId: "smart-reading-by-mohamed",
+                    storageBucket: "smart-reading-by-mohamed.firebasestorage.app",
+                    messagingSenderId: "668252782415",
+                    appId: "1:668252782415:web:b82acef6d99c42a9028f3a",
+                    measurementId: "G-FYMVTDDE8E"
+                };
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+                window.__db = db;
+                window.__auth = auth;
+                window.__firebaseReady = false;
+                window.__user = null;
+
+                function updateSyncStatus(online) {
+                    const el = document.getElementById('syncStatus');
+                    if (online) { el.className = 'sync-status online';
+                        el.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> متصل'; } else { el.className =
+                            'sync-status offline';
+                        el.innerHTML = '<i class="fas fa-wifi"></i> غير متصل (مخزّن محلياً)'; }
+                }
+
+                function signInAnonymously(retries = 3) {
+                    auth.signInAnonymously()
+                        .then((userCred) => {
+                            window.__user = userCred.user;
+                            window.__firebaseReady = true;
+                            updateSyncStatus(true);
+                            if (!window.__listenersStarted) startFirebaseListeners();
+                        })
+                        .catch((err) => {
+                            if (retries > 0 && (err.code === 'auth/network-request-failed' || err.code ===
+                                    'auth/internal-error')) {
+                                setTimeout(() => signInAnonymously(retries - 1), 2000);
+                            } else {
+                                window.__firebaseReady = false;
+                                updateSyncStatus(false);
+                                loadLocalData();
+                            }
+                        });
+                }
+                auth.onAuthStateChanged((user) => {
+                    if (user) { window.__user = user;
+                        window.__firebaseReady = true;
+                        updateSyncStatus(true); if (!window.__listenersStarted) startFirebaseListeners(); } else
+                        signInAnonymously();
+                });
+                setInterval(() => {
+                    db.enableNetwork().then(() => updateSyncStatus(true)).catch(() => updateSyncStatus(false));
+                }, 10000);
+                window.__firebaseReady = false;
+                window.__listenersStarted = false;
+            } catch (e) {
+                console.warn('⚠️ فشل تهيئة Firebase:', e);
+                window.__firebaseReady = false;
+                document.getElementById('syncStatus').className = 'sync-status offline';
+                document.getElementById('syncStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i> غير متصل';
+                loadLocalData();
+            }
+        })();
+
+        // ================================================================
+        // 1. المتغيرات العامة
+        // ================================================================
+        let studentsData = {};
+        let selectedStudentId = null;
+        let filteredStudentIds = [];
+        let currentReport = null;
+        let isSyncing = false;
+        let isLoading = false;
+
+        // متغيرات التسجيل المباشر
+        let micState = 'idle';
         let recognizer = null;
+        let mediaStream = null;
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let gainNode = null;
         let finalTranscript = '';
         let startTime = null;
         let endTime = null;
-        let readingRecords = [];
-        let currentReport = null;
-        let speechSynthesisUtterance = null;
+        let silenceTimer = null;
+        let isMicActive = false;
+        let retryCount = 0;
+        const SILENCE_TIMEOUT = 3000;
+        const MAX_SPEECH_DURATION = 60000;
+
+        // الفصول الافتراضية المطلوبة
+        const DEFAULT_CLASSES = ['رابع ب', 'رابع د', 'خامس ب', 'خامس د', 'سادس ب', 'سادس د'];
+        let classList = [...DEFAULT_CLASSES];
+        let currentClassFilter = 'الكل';
 
         const ORIGINAL_TEXT_EL = document.getElementById('originalText');
         let ORIGINAL_TEXT = ORIGINAL_TEXT_EL.textContent.trim();
         window.studentData = {};
 
-        // =====================================================================
+        // بيانات تقييم القراءة
+        let readingEvaluationData = {
+            oralReading: {
+                skills: [
+                    { name: 'نطق الحروف والكلمات نطقًا صحيحًا', score: 0 },
+                    { name: 'سلامة مخارج الحروف', score: 0 },
+                    { name: 'قراءة الكلمات دون تهجئة مفرطة', score: 0 },
+                    { name: 'الطلاقة وسلاسة القراءة', score: 0 },
+                    { name: 'مراعاة علامات الترقيم', score: 0 },
+                    { name: 'ضبط الكلمات والحركات', score: 0 },
+                    { name: 'التنغيم والتعبير الصوتي', score: 0 },
+                    { name: 'المحافظة على سرعة مناسبة', score: 0 }
+                ],
+                total: 0
+            },
+            comprehension: {
+                skills: [
+                    { name: 'تحديد الفكرة الرئيسة', score: 0 },
+                    { name: 'استخراج المعلومات الصريحة', score: 0 },
+                    { name: 'فهم معاني المفردات من السياق', score: 0 },
+                    { name: 'ترتيب أحداث النص', score: 0 },
+                    { name: 'الاستنتاج من النص', score: 0 },
+                    { name: 'التمييز بين الحقيقة والرأي', score: 0 },
+                    { name: 'استنتاج القيم والأفكار', score: 0 },
+                    { name: 'التعبير عن الرأي في النص', score: 0 }
+                ],
+                total: 0
+            },
+            fluency: {
+                wordCount: 0,
+                timeSeconds: 0,
+                errors: 0,
+                correctWords: 0,
+                wordsPerMinute: 0,
+                accuracy: 0,
+                stops: 0,
+                repeats: 0
+            },
+            errorTypes: {
+                deleteWord: false,
+                addWord: false,
+                replaceLetter: false,
+                replaceWord: false,
+                reverseLetters: false,
+                harakatDifficulty: false,
+                slowSpelling: false,
+                frequentStops: false,
+                punctuationIgnored: false,
+                weakMakharij: false,
+                repeatedWords: false,
+                weakComprehension: false
+            },
+            comprehensionQuestions: {
+                q1: '',
+                q2: '',
+                q3_word: '',
+                q3_answer: '',
+                q4_word: '',
+                q4_answer: '',
+                q5_word: '',
+                q5_answer: '',
+                q6: '',
+                q7: '',
+                q8: ''
+            },
+            strengths: '',
+            improvements: '',
+            recommendation: '',
+            treatmentPlan: {
+                lettersSounds: false,
+                harakat: false,
+                wordReading: false,
+                fluency: false,
+                modelReading: false,
+                repeatedReading: false,
+                punctuation: false,
+                comprehension: false,
+                vocabulary: false,
+                dailyIndividual: false
+            },
+            reevaluationDate: '',
+            teacherName: '',
+            teacherSignature: '',
+            finalScore: 0,
+            percentage: 0,
+            level: '',
+            levelClass: ''
+        };
+
+        // ================================================================
         // 2. دوال مساعدة
-        // =====================================================================
+        // ================================================================
         function pad2(n) { return String(n).padStart(2, '0'); }
 
         function formatDateAr(d) { return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
 
         function formatTimeAr(d) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
 
-        function normalizeArabic(text) {
+        function generateStudentId() { return 'student_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6); }
+
+        function generateReportId() { return 'report_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4); }
+
+        function showToast(message, type = 'info', duration = 2500) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            clearTimeout(toast._hideTimeout);
+            toast._hideTimeout = setTimeout(() => { toast.classList.remove('show'); }, duration);
+        }
+
+        // ================================================================
+        // 3. إدارة الميكروفون (بدون معايرة)
+        // ================================================================
+        function releaseMicrophone() {
+            if (recognizer) {
+                try { recognizer.abort();
+                    recognizer.stop(); } catch (e) {}
+                recognizer = null;
+            }
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(t => t.stop());
+                mediaStream = null;
+            }
+            if (audioContext) {
+                try { audioContext.close(); } catch (e) {}
+                audioContext = null;
+            }
+            analyser = null;
+            dataArray = null;
+            gainNode = null;
+            clearTimeout(silenceTimer);
+            silenceTimer = null;
+            isMicActive = false;
+            finalTranscript = '';
+            retryCount = 0;
+            console.log('✅ تم تحرير الميكروفون');
+        }
+
+        function resetMicrophone() {
+            releaseMicrophone();
+            updateMicStatus('idle', 'جاهز للتسجيل');
+            showToast('🔄 تم إعادة تهيئة الميكروفون', 'info', 1500);
+        }
+        document.getElementById('resetMicBtn').addEventListener('click', resetMicrophone);
+
+        function updateMicStatus(state, message) {
+            const statusText = document.getElementById('statusText');
+            const dot = document.getElementById('statusDot');
+            const btn = document.getElementById('recordBtn');
+            const retryBtn = document.getElementById('retryBtn');
+            const stopBtn = document.getElementById('stopRecordingBtn');
+
+            micState = state;
+            dot.className = 'status-dot';
+
+            switch (state) {
+                case 'idle':
+                    dot.classList.add('idle');
+                    statusText.textContent = message || 'جاهز للتسجيل';
+                    btn.className = 'record-btn no-print';
+                    btn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    btn.disabled = false;
+                    retryBtn.style.display = 'none';
+                    stopBtn.style.display = 'none';
+                    break;
+                case 'listening':
+                    dot.classList.add('listening');
+                    statusText.textContent = message || '🔴 ينتظر الصوت...';
+                    btn.className = 'record-btn no-print';
+                    btn.innerHTML = '<i class="fas fa-microphone-alt"></i>';
+                    btn.disabled = true;
+                    stopBtn.style.display = 'inline-flex';
+                    break;
+                case 'speaking':
+                    dot.classList.add('speaking');
+                    statusText.textContent = message || '🔊 جارٍ القراءة...';
+                    btn.className = 'record-btn no-print recording';
+                    btn.innerHTML = '<i class="fas fa-stop-circle"></i>';
+                    btn.disabled = true;
+                    stopBtn.style.display = 'inline-flex';
+                    break;
+                case 'processing':
+                    dot.classList.add('processing');
+                    statusText.textContent = message || '⚙️ جارٍ معالجة الصوت...';
+                    btn.className = 'record-btn no-print processing';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+                    btn.disabled = true;
+                    stopBtn.style.display = 'none';
+                    break;
+                case 'result':
+                    dot.classList.add('success');
+                    statusText.textContent = message || '✅ تم التعرف على القراءة';
+                    btn.className = 'record-btn no-print';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    btn.disabled = false;
+                    retryBtn.style.display = 'inline-flex';
+                    stopBtn.style.display = 'none';
+                    break;
+                case 'error':
+                    dot.classList.add('error');
+                    statusText.textContent = message || '⚠️ فشل التعرف، حاول مرة أخرى';
+                    btn.className = 'record-btn no-print';
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    btn.disabled = false;
+                    retryBtn.style.display = 'inline-flex';
+                    stopBtn.style.display = 'none';
+                    break;
+                default:
+                    dot.classList.add('idle');
+                    statusText.textContent = message || 'جاهز';
+                    btn.disabled = false;
+            }
+        }
+
+        document.getElementById('stopRecordingBtn').addEventListener('click', function() {
+            if (micState === 'listening' || micState === 'speaking') {
+                stopRecording('تم الإيقاف يدوياً');
+                showToast('⏹️ تم إيقاف التسجيل يدوياً', 'info', 1500);
+            }
+        });
+
+        document.getElementById('retryBtn').addEventListener('click', function() {
+            resetMicrophone();
+            setTimeout(() => startRecording(), 300);
+        });
+
+        // ================================================================
+        // 4. بدء التسجيل المباشر
+        // ================================================================
+        function startRecording() {
+            if (!selectedStudentId) {
+                showToast('⚠️ اختر طالباً أولاً', 'error');
+                return;
+            }
+
+            const msgEl = document.getElementById('browserSupportMsg');
+            msgEl.classList.remove('show');
+            msgEl.textContent = '';
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                msgEl.textContent = '❌ متصفحك لا يدعم الوصول إلى الميكروفون. استخدم Chrome أو Edge.';
+                msgEl.classList.add('show');
+                showToast('❌ المتصفح غير مدعوم', 'error');
+                updateMicStatus('error', 'المتصفح غير مدعوم');
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                msgEl.textContent = '❌ متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Edge.';
+                msgEl.classList.add('show');
+                showToast('❌ التعرف على الصوت غير مدعوم', 'error');
+                updateMicStatus('error', 'التعرف غير مدعوم');
+                return;
+            }
+
+            releaseMicrophone();
+            updateMicStatus('listening', '🔴 جارٍ الاتصال بالميكروفون...');
+
+            navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 16000 }
+                })
+                .then(function(stream) {
+                    mediaStream = stream;
+                    if (stream.getAudioTracks().length === 0) throw new Error('لا توجد مسارات صوتية فعالة.');
+                    const track = stream.getAudioTracks()[0];
+                    if (!track.enabled) track.enabled = true;
+                    console.log('✅ تم الحصول على تدفق الصوت، المسار:', track.label);
+
+                    audioContext = new(window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaStreamSource(stream);
+
+                    gainNode = audioContext.createGain();
+                    gainNode.gain.value = 1.2;
+                    source.connect(gainNode);
+
+                    const filterNode = audioContext.createBiquadFilter();
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.value = 4000;
+                    gainNode.connect(filterNode);
+
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    filterNode.connect(analyser);
+                    dataArray = new Uint8Array(analyser.fftSize);
+
+                    audioContext.resume();
+                    startSpeechRecognition();
+                })
+                .catch(function(err) {
+                    console.error('❌ فشل الحصول على الميكروفون:', err);
+                    let msg = '❌ لم يتمكن من الوصول إلى الميكروفون.';
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') msg += ' يرجى السماح بالوصول.';
+                    else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') msg += ' لا يوجد ميكروفون.';
+                    else msg += ' ' + err.message;
+                    showToast(msg, 'error');
+                    updateMicStatus('error', 'فشل الوصول إلى الميكروفون');
+                    releaseMicrophone();
+                    const msgEl = document.getElementById('browserSupportMsg');
+                    msgEl.textContent = msg;
+                    msgEl.classList.add('show');
+                });
+        }
+
+        // ================================================================
+        // 5. التعرف الصوتي
+        // ================================================================
+        function startSpeechRecognition() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognizer = new SR();
+            recognizer.lang = 'ar-SA';
+            recognizer.continuous = true;
+            recognizer.interimResults = true;
+            recognizer.maxAlternatives = 5;
+
+            finalTranscript = '';
+            let lastSpeechTime = Date.now();
+            let silenceTimeout = null;
+            let isRecognizerActive = false;
+
+            recognizer.onstart = function() {
+                isRecognizerActive = true;
+                isMicActive = true;
+                startTime = new Date();
+                updateMicStatus('listening', '🔴 جارٍ الاستماع...');
+                showToast('🎤 بدأ التسجيل، اقرأ النص بصوت واضح', 'info', 1500);
+                console.log('✅ بدأ التعرف الصوتي');
+                document.getElementById('browserSupportMsg').classList.remove('show');
+            };
+
+            recognizer.onresult = function(event) {
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) final += transcript + ' ';
+                }
+
+                if (final) {
+                    finalTranscript += final;
+                    lastSpeechTime = Date.now();
+
+                    if (micState !== 'speaking') updateMicStatus('speaking', '🔊 جارٍ القراءة...');
+
+                    clearTimeout(silenceTimeout);
+                    silenceTimeout = setTimeout(() => {
+                        if (Date.now() - lastSpeechTime >= SILENCE_TIMEOUT) {
+                            stopRecording('انتهى الكلام تلقائياً');
+                        }
+                    }, SILENCE_TIMEOUT);
+
+                    document.getElementById('recordStatus').innerHTML =
+                        `<span class="status-dot speaking"></span><span>🔊 جارٍ القراءة... (${finalTranscript.length} حرف)</span>`;
+                }
+            };
+
+            recognizer.onerror = function(event) {
+                console.warn('⚠️ خطأ في التعرف:', event.error);
+                if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                    showToast('❌ يرجى السماح بالوصول إلى الميكروفون.', 'error');
+                    releaseMicrophone();
+                    updateMicStatus('error', 'تم رفض الإذن');
+                    document.getElementById('browserSupportMsg').textContent = '❌ تم رفض الإذن للوصول إلى الميكروفون.';
+                    document.getElementById('browserSupportMsg').classList.add('show');
+                } else if (event.error === 'no-speech') {
+                    if (micState === 'listening' || micState === 'speaking') {
+                        updateMicStatus('listening', '⏳ انتظار الصوت...');
+                    }
+                } else if (event.error === 'audio-capture') {
+                    showToast('❌ لم يتم العثور على ميكروفون.', 'error');
+                    releaseMicrophone();
+                    updateMicStatus('error', 'لا يوجد ميكروفون');
+                    document.getElementById('browserSupportMsg').textContent = '❌ لم يتم العثور على ميكروفون.';
+                    document.getElementById('browserSupportMsg').classList.add('show');
+                } else {
+                    if (isMicActive && (micState === 'listening' || micState === 'speaking')) {
+                        retryCount++;
+                        if (retryCount < 3) {
+                            setTimeout(() => {
+                                if (isMicActive && recognizer && !isRecognizerActive) {
+                                    try { recognizer.start(); } catch (ex) {}
+                                }
+                            }, 500);
+                        } else {
+                            stopRecording('فشل التعرف بعد عدة محاولات');
+                        }
+                    }
+                }
+            };
+
+            recognizer.onend = function() {
+                isRecognizerActive = false;
+                console.log('⏹️ انتهى التعرف الصوتي');
+                if (isMicActive && (micState === 'listening' || micState === 'speaking')) {
+                    if (retryCount < 3) {
+                        retryCount++;
+                        setTimeout(() => {
+                            if (isMicActive && recognizer && !isRecognizerActive) {
+                                try { recognizer.start(); } catch (ex) {}
+                            }
+                        }, 300);
+                    } else {
+                        stopRecording('فشل التعرف بعد عدة محاولات');
+                    }
+                }
+            };
+
+            try { recognizer.start(); } catch (e) {
+                console.warn('⚠️ فشل بدء التعرف:', e);
+                showToast('⚠️ فشل بدء التعرف: ' + e.message, 'error');
+                updateMicStatus('error', 'فشل بدء التعرف');
+                releaseMicrophone();
+                document.getElementById('browserSupportMsg').textContent = '⚠️ فشل بدء التعرف: ' + e.message;
+                document.getElementById('browserSupportMsg').classList.add('show');
+            }
+
+            setTimeout(() => {
+                if (isMicActive && (micState === 'listening' || micState === 'speaking')) {
+                    stopRecording('انتهى الوقت المحدد للقراءة');
+                    showToast('⏱️ انتهى وقت القراءة', 'error');
+                }
+            }, MAX_SPEECH_DURATION);
+        }
+
+        // ================================================================
+        // 6. إيقاف التسجيل وتحليل القراءة
+        // ================================================================
+        function stopRecording(reason) {
+            if (!isMicActive && micState === 'idle') return;
+
+            isMicActive = false;
+            clearTimeout(silenceTimer);
+
+            if (recognizer) { try { recognizer.abort();
+                    recognizer.stop(); } catch (e) {} recognizer = null; }
+            if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop());
+                mediaStream = null; }
+            if (audioContext) { try { audioContext.close(); } catch (e) {} audioContext = null; }
+            analyser = null;
+            dataArray = null;
+            gainNode = null;
+
+            endTime = new Date();
+            const spoken = finalTranscript.trim();
+
+            console.log('⏹️ تم إيقاف التسجيل. السبب:', reason);
+            console.log('📝 النص المتعرف عليه:', spoken);
+
+            if (!spoken || spoken.length < 3) {
+                updateMicStatus('error', '⚠️ لم يتم التعرف على قراءة واضحة');
+                document.getElementById('retryBtn').style.display = 'inline-flex';
+                showToast('⚠️ لم يتم التعرف على الكلام. حاول مرة أخرى.', 'error');
+                document.getElementById('recText').textContent = 'لم يتم التعرف على قراءة. تأكد من وضوح الصوت والميكروفون.';
+                document.getElementById('comparisonContent').textContent = 'لم يتم التعرف على قراءة.';
+                return;
+            }
+
+            updateMicStatus('processing', '⚙️ جارٍ تحليل القراءة...');
+
+            setTimeout(() => {
+                const result = analyzeReading(spoken);
+                displayReadingResult(result);
+            }, 300);
+        }
+
+        // ================================================================
+        // 7. تحليل القراءة ومقارنة النصوص
+        // ================================================================
+        function normalizeArabicText(text) {
             return text
                 .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
                 .replace(/\u0640/g, '')
@@ -785,61 +1749,76 @@
                 .trim();
         }
 
-        async function extractTextFromFile(file) {
-            const ext = file.name.split('.').pop().toLowerCase();
-            if (ext === 'txt') {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = reject;
-                    reader.readAsText(file, 'UTF-8');
-                });
-            } else if (ext === 'docx') {
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({ arrayBuffer });
-                return result.value;
-            } else if (ext === 'pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                let text = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(' ');
-                }
-                return text;
-            } else if (ext === 'xlsx' || ext === 'xls') {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                        let text = json.flat().filter(v => v && String(v).trim()).map(v => String(v).trim()).join(' ');
-                        resolve(text || '');
-                    };
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
-                });
-            } else {
-                throw new Error('صيغة غير مدعومة: ' + ext);
-            }
-        }
-
-        // =====================================================================
-        // 3. خوارزمية التحليل المتقدمة
-        // =====================================================================
         function analyzeReading(spokenText) {
             const orig = ORIGINAL_TEXT;
             const spoken = spokenText.trim();
 
-            const origNorm = normalizeArabic(orig);
-            const spokenNorm = normalizeArabic(spoken);
+            if (!spoken || spoken.length < 2) {
+                return {
+                    errors: 0,
+                    accuracy: 0,
+                    wordCount: 0,
+                    maddCount: 0,
+                    totalChars: 0,
+                    wordCorrect: [],
+                    origRawWords: [],
+                    wrongWords: [],
+                    recommendation: 'لم يتم التعرف على كلام. حاول القراءة بصوت أوضح.',
+                    skills: {
+                        'مخارج الحروف': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الحركات القصيرة': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'المدود': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الشدة': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'السكون': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الطلاقة القرائية': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' }
+                    },
+                    weakestSkill: 'الطلاقة القرائية',
+                    challengeText: '🎯 تحدٍ: حاول قراءة النص مرة أخرى مع التركيز على الوضوح.',
+                    details: { letterErrors: 0, harakatErrors: 0, maddErrors: 0, shaddaErrors: 0, sukounErrors: 0,
+                        weakLetters: [] },
+                    fluency: { wordsPerMinute: 0, stops: 0, repeats: 0, level: 'لا يوجد', class: 'fluency-medium' },
+                    recommendationText: 'لم يتم التعرف على قراءة واضحة.',
+                    durationMinutes: 0.5,
+                    spokenWords: []
+                };
+            }
+
+            const origNorm = normalizeArabicText(orig);
+            const spokenNorm = normalizeArabicText(spoken);
 
             const origRawWords = orig.trim().split(/\s+/).filter(w => w.length > 0);
             const origWords = origNorm.split(' ').filter(w => w.length > 0);
             const spokenWords = spokenNorm.split(' ').filter(w => w.length > 0);
+
+            if (spokenWords.length === 0) {
+                return {
+                    errors: origWords.length,
+                    accuracy: 0,
+                    wordCount: 0,
+                    maddCount: 0,
+                    totalChars: origWords.length,
+                    wordCorrect: new Array(origWords.length).fill(false),
+                    origRawWords: origRawWords,
+                    wrongWords: origRawWords,
+                    recommendation: 'لم يتم التعرف على كلمات.',
+                    skills: {
+                        'مخارج الحروف': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الحركات القصيرة': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'المدود': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الشدة': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'السكون': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' },
+                        'الطلاقة القرائية': { score: 0, label: 'يحتاج علاج', cls: 'level-needs' }
+                    },
+                    weakestSkill: 'الطلاقة القرائية',
+                    challengeText: '🎯 حاول قراءة النص كاملاً مع التركيز على كل كلمة.',
+                    details: { letterErrors: 0, harakatErrors: 0, maddErrors: 0, shaddaErrors: 0, sukounErrors: 0,
+                        weakLetters: [] },
+                    fluency: { wordsPerMinute: 0, stops: 0, repeats: 0, level: 'لا يوجد', class: 'fluency-medium' },
+                    recommendationText: 'لم يتم التعرف على كلمات.',
+                    durationMinutes: 0.5,
+                    spokenWords: []
+                };
+            }
 
             const n = origWords.length,
                 m = spokenWords.length;
@@ -848,23 +1827,29 @@
             for (let j = 0; j <= m; j++) dp[0][j] = j;
             for (let i = 1; i <= n; i++) {
                 for (let j = 1; j <= m; j++) {
-                    if (origWords[i - 1] === spokenWords[j - 1]) {
-                        dp[i][j] = dp[i - 1][j - 1];
-                    } else {
-                        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
-                    }
+                    if (origWords[i - 1] === spokenWords[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+                    else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
                 }
             }
+
             let i = n,
                 j = m;
             const wordCorrect = new Array(n).fill(true);
             while (i > 0 && j > 0) {
-                if (origWords[i - 1] === spokenWords[j - 1]) { wordCorrect[i - 1] = true;
+                if (origWords[i - 1] === spokenWords[j - 1]) {
+                    wordCorrect[i - 1] = true;
                     i--;
-                    j--; } else if (dp[i][j] === dp[i - 1][j - 1] + 1) { wordCorrect[i - 1] = false;
+                    j--;
+                } else if (dp[i][j] === dp[i - 1][j - 1] + 1) {
+                    wordCorrect[i - 1] = false;
                     i--;
-                    j--; } else if (dp[i][j] === dp[i - 1][j] + 1) { wordCorrect[i - 1] = false;
-                    i--; } else { j--; }
+                    j--;
+                } else if (dp[i][j] === dp[i - 1][j] + 1) {
+                    wordCorrect[i - 1] = false;
+                    i--;
+                } else {
+                    j--;
+                }
             }
             while (i > 0) { wordCorrect[i - 1] = false;
                 i--; }
@@ -925,6 +1910,7 @@
                 else if (rand < 0.7) shaddaErrors++;
                 else sukounErrors++;
             }
+
             const totalDetected = maddErrors + letterErrors + harakatErrors + shaddaErrors + sukounErrors;
             const diff = Math.max(0, errors - totalDetected);
             harakatErrors += diff;
@@ -972,11 +1958,10 @@
             let weakestSkill = 'الطلاقة القرائية';
             let weakestScore = 100;
             for (const [name, data] of Object.entries(skillLevels)) {
-                if (data.score < weakestScore) {
-                    weakestScore = data.score;
-                    weakestSkill = name;
-                }
+                if (data.score < weakestScore) { weakestScore = data.score;
+                    weakestSkill = name; }
             }
+
             const challengeMap = {
                 'مخارج الحروف': '🎯 تحدي المخارج: اقرأ الكلمات التي تحتوي على الحروف المتقاربة مع التركيز على مخرج كل حرف.',
                 'الحركات القصيرة': '🎯 تحدي الحركات: اقرأ الكلمات مع المحافظة على الفتحة والضمة والكسرة.',
@@ -1017,8 +2002,7 @@
                 recommendationText = 'لا توجد حروف محددة تحتاج مراجعة، استمر في التدريب على القراءة المتصلة.';
             }
 
-            const recommendation =
-                `الدقة: ${accuracy}%، الأخطاء: ${errors} كلمة. أبرز التحديات: ${weakestSkill}.`;
+            const recommendation = `الدقة: ${accuracy}%، الأخطاء: ${errors} كلمة. أبرز التحديات: ${weakestSkill}.`;
 
             return {
                 errors,
@@ -1036,13 +2020,102 @@
                 details: { letterErrors, harakatErrors, maddErrors, shaddaErrors, sukounErrors, weakLetters },
                 fluency: { wordsPerMinute, stops, repeats, level: fluencyLevel, class: fluencyClass },
                 recommendationText,
-                durationMinutes
+                durationMinutes,
+                spokenWords: spokenWords
             };
         }
 
-        // =====================================================================
-        // 4. الرسوم البيانية
-        // =====================================================================
+        // ================================================================
+        // 8. عرض نتيجة القراءة وحفظها
+        // ================================================================
+        function displayReadingResult(result) {
+            const accuracy = result.accuracy || 0;
+            const errors = result.errors || 0;
+            const wordCount = result.wordCount || 0;
+
+            document.getElementById('statErrors').textContent = errors;
+            document.getElementById('statAccuracy').textContent = accuracy + '%';
+            document.getElementById('statWords').textContent = wordCount;
+            document.getElementById('statMadd').textContent = result.details?.maddErrors || 0;
+            document.getElementById('recText').textContent = result.recommendation || '';
+
+            updateCharts({
+                errors: errors,
+                totalChars: result.totalChars || 1,
+                details: result.details || {}
+            });
+
+            const origWords = ORIGINAL_TEXT.trim().split(/\s+/).filter(w => w.length > 0);
+            const spokenWords = result.spokenWords || [];
+            let comparisonHtml = '';
+            if (origWords.length > 0 && spokenWords.length > 0) {
+                const maxLen = Math.max(origWords.length, spokenWords.length);
+                for (let idx = 0; idx < maxLen; idx++) {
+                    const origWord = origWords[idx] || '---';
+                    const spokenWord = spokenWords[idx] || '---';
+                    const isCorrect = (idx < result.wordCorrect?.length) ? result.wordCorrect[idx] : false;
+                    if (isCorrect) {
+                        comparisonHtml += `<span class="correct-word">${origWord}</span> `;
+                    } else {
+                        comparisonHtml +=
+                            `<span class="error-word">${origWord}</span> <span style="color:#e74c3c;font-size:0.8rem;">(→ ${spokenWord})</span> `;
+                    }
+                }
+            } else {
+                comparisonHtml = 'لم يتم تسجيل قراءة كافية للمقارنة.';
+            }
+            document.getElementById('comparisonContent').innerHTML = comparisonHtml;
+
+            if (result.origRawWords && result.origRawWords.length > 0) {
+                const highlighted = result.origRawWords.map((w, idx) => {
+                    const isCorrect = (idx < result.wordCorrect?.length) ? result.wordCorrect[idx] : true;
+                    return isCorrect ? w : `<mark>${w}</mark>`;
+                }).join(' ');
+                document.getElementById('originalText').innerHTML = highlighted;
+            }
+
+            if (selectedStudentId) {
+                renderReport(result, selectedStudentId);
+                showToast(`✅ تم حفظ قراءة "${studentsData[selectedStudentId]?.name || selectedStudentId}"`, 'success', 2000);
+            } else {
+                showToast('⚠️ لا يوجد طالب محدد لحفظ النتيجة', 'error');
+            }
+
+            if (accuracy >= 80) updateMicStatus('result', `✅ قراءة جيدة! الدقة: ${accuracy}%`);
+            else if (accuracy >= 50) updateMicStatus('result', `📖 قراءة متوسطة. الدقة: ${accuracy}%`);
+            else updateMicStatus('result', `📚 بحاجة إلى تدريب. الدقة: ${accuracy}%`);
+
+            document.getElementById('retryBtn').style.display = 'inline-flex';
+            releaseMicrophone();
+        }
+
+        // ================================================================
+        // 9. زر التسجيل (الحدث الرئيسي)
+        // ================================================================
+        document.getElementById('recordBtn').addEventListener('click', function() {
+            console.log('🔘 زر التسجيل مضغوط، الحالة الحالية:', micState);
+
+            if (micState !== 'idle' && micState !== 'result' && micState !== 'error' &&
+                micState !== 'listening' && micState !== 'speaking' && micState !== 'processing') {
+                console.warn('⚠️ حالة غير معروفة، إعادة ضبط إلى idle');
+                resetMicrophone();
+                setTimeout(() => startRecording(), 200);
+                return;
+            }
+
+            if (micState === 'idle' || micState === 'result' || micState === 'error') {
+                startRecording();
+            } else if (micState === 'listening' || micState === 'speaking') {
+                stopRecording('تم الإيقاف يدوياً');
+                showToast('⏹️ تم إيقاف التسجيل', 'info', 1500);
+            } else {
+                showToast('⏳ جارٍ المعالجة... انتظر قليلاً', 'info', 1500);
+            }
+        });
+
+        // ================================================================
+        // 10. الرسوم البيانية
+        // ================================================================
         let chartErrors = null,
             chartLetters = null;
 
@@ -1077,48 +2150,18 @@
             chartLetters.update();
         }
 
-        // =====================================================================
-        // 5. عرض التقرير الداخلي
-        // =====================================================================
-        function renderReport(result, studentName) {
+        // ================================================================
+        // 11. حفظ التقرير وربطه بالطالب
+        // ================================================================
+        function renderReport(result, studentId) {
             const now = new Date();
-            document.getElementById('rStudent').textContent = studentName || '—';
-            document.getElementById('rGrade').textContent = document.getElementById('classGrade').value || '—';
-            document.getElementById('rSection').textContent = document.getElementById('classSection').value || '—';
-            document.getElementById('rTeacher').textContent = document.getElementById('teacherName').value || '—';
-            document.getElementById('rSchool').textContent = document.getElementById('schoolName').value || '—';
-            document.getElementById('rTextTitle').textContent = document.getElementById('textTitle').value || '—';
-            document.getElementById('rDate').textContent = formatDateAr(now);
-            document.getElementById('rStartTime').textContent = startTime ? formatTimeAr(startTime) : formatTimeAr(now);
-            document.getElementById('rReportTime').textContent = formatTimeAr(now);
-            const duration = startTime && endTime ? Math.round((endTime - startTime) / 1000) : 30;
-            document.getElementById('rDuration').textContent = duration + ' ثانية';
-            document.getElementById('rWordCount').textContent = result.wordCount;
+            const studentName = studentsData[studentId]?.name || selectedStudentId || '—';
+            const reportId = generateReportId();
 
-            const tbody = document.getElementById('skillsBody');
-            tbody.innerHTML = '';
-            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
-            for (const name of skillNames) {
-                const data = result.skills[name] || { score: 0, label: 'يحتاج علاج', cls: 'level-needs' };
-                const tr = document.createElement('tr');
-                tr.innerHTML =
-                    `<td>${name}</td><td>${data.score}%</td><td><span class="level-badge ${data.cls}">${data.label}</span></td>`;
-                tbody.appendChild(tr);
-            }
-
-            document.getElementById('fluencySpeed').textContent = result.fluency.wordsPerMinute;
-            document.getElementById('fluencyStops').textContent = result.fluency.stops;
-            document.getElementById('fluencyRepeat').textContent = result.fluency.repeats;
-            const levelSpan = document.getElementById('fluencyLevel');
-            levelSpan.textContent = result.fluency.level;
-            levelSpan.className = 'badge-fluency ' + result.fluency.class;
-
-            document.getElementById('challengeText').textContent = result.challengeText;
-            document.getElementById('recommendationText').textContent = result.recommendationText;
-
-            // ===== التعديل المطلوب: إضافة origRawWords =====
-            currentReport = {
-                student: studentName,
+            const reportData = {
+                reportId: reportId,
+                studentId: studentId,
+                studentName: studentName,
                 grade: document.getElementById('classGrade').value || '—',
                 section: document.getElementById('classSection').value || '—',
                 teacher: document.getElementById('teacherName').value || '—',
@@ -1127,307 +2170,359 @@
                 date: formatDateAr(now),
                 startTime: startTime ? formatTimeAr(startTime) : formatTimeAr(now),
                 reportTime: formatTimeAr(now),
-                duration: duration + ' ثانية',
+                duration: startTime && endTime ? Math.round((endTime - startTime) / 1000) + ' ثانية' : '30 ثانية',
                 wordCount: result.wordCount,
-                skills: result.skills,
-                challenge: result.challengeText,
-                recommendation: result.recommendationText,
-                fluency: result.fluency,
                 errors: result.errors,
                 accuracy: result.accuracy,
+                skills: result.skills,
+                fluency: result.fluency,
+                challenge: result.challengeText,
+                recommendation: result.recommendationText,
                 details: result.details,
-                durationMinutes: result.durationMinutes,
+                origRawWords: result.origRawWords,
                 wordCorrect: result.wordCorrect,
-                origRawWords: result.origRawWords   // <-- تمت الإضافة
+                durationMinutes: result.durationMinutes,
+                spokenText: result.spokenWords ? result.spokenWords.join(' ') : '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            displayReportData(reportData);
+
+            if (studentId) {
+                if (!studentsData[studentId]) {
+                    studentsData[studentId] = { name: studentName, grade: reportData.grade, section: reportData.section,
+                        reports: [], latestReport: null };
+                }
+                if (!studentsData[studentId].reports) studentsData[studentId].reports = [];
+                studentsData[studentId].reports.unshift(reportData);
+                studentsData[studentId].latestReport = reportData;
+                studentsData[studentId].name = studentName;
+                studentsData[studentId].grade = reportData.grade;
+                studentsData[studentId].section = reportData.section;
+                studentsData[studentId].teacher = reportData.teacher;
+                studentsData[studentId].school = reportData.school;
+                window.studentData[studentName] = {
+                    grade: reportData.grade,
+                    section: reportData.section,
+                    teacher: reportData.teacher,
+                    school: reportData.school,
+                    studentId: studentId
+                };
+                saveToLocalStorage();
+
+                if (window.__firebaseReady && window.__user) {
+                    const db = window.__db;
+                    const studentRef = db.collection('students').doc(studentId);
+                    studentRef.set({
+                        name: studentName,
+                        grade: reportData.grade,
+                        section: reportData.section,
+                        teacher: reportData.teacher,
+                        school: reportData.school,
+                        class: reportData.section,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    const reportRef = db.collection('students').doc(studentId).collection('reports').doc(reportId);
+                    reportRef.set(reportData)
+                        .then(() => console.log('✅ تقرير محفوظ في Firebase:', reportId))
+                        .catch((err) => console.warn('⚠️ فشل حفظ التقرير:', err));
+                }
+            }
+            currentReport = reportData;
         }
 
-        // =====================================================================
-        // 6. معالجة النص المقروء
-        // =====================================================================
-        function processSpokenText(spoken) {
-            if (!selectedStudent) { document.getElementById('recText').textContent = '⚠️ اختر طالباً أولاً.'; return; }
-            endTime = new Date();
-            const result = analyzeReading(spoken);
-            document.getElementById('statErrors').textContent = result.errors;
-            document.getElementById('statAccuracy').textContent = result.accuracy + '%';
-            document.getElementById('statWords').textContent = result.wordCount;
-            document.getElementById('statMadd').textContent = result.details.maddErrors || 0;
-            document.getElementById('recText').textContent = result.recommendation;
-            updateCharts(result);
+        function displayReportData(report) {
+            document.getElementById('rStudent').textContent = report.studentName || '—';
+            document.getElementById('rGrade').textContent = report.grade || '—';
+            document.getElementById('rSection').textContent = report.section || '—';
+            document.getElementById('rTeacher').textContent = report.teacher || '—';
+            document.getElementById('rSchool').textContent = report.school || '—';
+            document.getElementById('rTextTitle').textContent = report.textTitle || '—';
+            document.getElementById('rDate').textContent = report.date || '—';
+            document.getElementById('rStartTime').textContent = report.startTime || '—';
+            document.getElementById('rReportTime').textContent = report.reportTime || '—';
+            document.getElementById('rDuration').textContent = report.duration || '—';
+            document.getElementById('rWordCount').textContent = report.wordCount || '—';
 
-            const highlighted = result.origRawWords.map((w, idx) => result.wordCorrect[idx] ? w :
-                `<mark>${w}</mark>`).join(' ');
-            document.getElementById('originalText').innerHTML = highlighted;
-            document.getElementById('recordStatus').textContent = '✅ تحليل مكتمل';
+            document.getElementById('statErrors').textContent = report.errors || 0;
+            document.getElementById('statAccuracy').textContent = (report.accuracy || 0) + '%';
+            document.getElementById('statWords').textContent = report.wordCount || 0;
+            document.getElementById('statMadd').textContent = report.details?.maddErrors || 0;
+            document.getElementById('recText').textContent = report.recommendation || '';
 
-            const now = new Date();
-            readingRecords.push({
-                student: selectedStudent,
-                teacher: document.getElementById('teacherName').value || '—',
-                date: formatDateAr(now),
-                day: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][now.getDay()],
-                time: formatTimeAr(now),
-                level: result.accuracy >= 90 ? 'ممتاز' : result.accuracy >= 80 ? 'جيد' : result.accuracy >= 60 ?
-                    'متوسط' : 'ضعيف',
-                weakWords: result.wrongWords.join('، ') || 'لا يوجد',
-                recommendation: result.recommendation
+            updateCharts({
+                errors: report.errors || 0,
+                totalChars: report.wordCount || 1,
+                details: report.details || {}
             });
-            renderReport(result, selectedStudent);
+
+            const tbody = document.getElementById('skillsBody');
+            tbody.innerHTML = '';
+            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
+            for (const name of skillNames) {
+                const data = report.skills?.[name] || { score: 0, label: 'يحتاج علاج', cls: 'level-needs' };
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    `<td>${name}</td><td>${data.score}%</td><td><span class="level-badge ${data.cls}">${data.label}</span></td>`;
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('fluencySpeed').textContent = report.fluency?.wordsPerMinute || '—';
+            document.getElementById('fluencyStops').textContent = report.fluency?.stops || '—';
+            document.getElementById('fluencyRepeat').textContent = report.fluency?.repeats || '—';
+            const levelSpan = document.getElementById('fluencyLevel');
+            levelSpan.textContent = report.fluency?.level || '—';
+            levelSpan.className = 'badge-fluency ' + (report.fluency?.class || 'fluency-medium');
+
+            document.getElementById('challengeText').textContent = report.challenge || '';
+            document.getElementById('recommendationText').textContent = report.recommendation || '';
+
+            if (report.origRawWords && report.origRawWords.length > 0) {
+                const highlighted = report.origRawWords.map((w, idx) => {
+                    const isCorrect = (idx < report.wordCorrect?.length) ? report.wordCorrect[idx] : true;
+                    return isCorrect ? w : `<mark>${w}</mark>`;
+                }).join(' ');
+                document.getElementById('originalText').innerHTML = highlighted;
+            }
+            currentReport = report;
         }
 
-        // =====================================================================
-        // 7. التسجيل المستمر
-        // =====================================================================
-        function startContinuousRecognition() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('متصفحك لا يدعم التعرف على الصوت. استخدم Chrome.');
-                document.getElementById('recordStatus').textContent = '❌ غير مدعوم';
-                return;
+        // ================================================================
+        // 12. إدارة الطلاب والفصول
+        // ================================================================
+
+        function filterStudentsByClass() {
+            const filter = document.getElementById('classFilter');
+            currentClassFilter = filter.value;
+
+            const allIds = Object.keys(studentsData);
+            if (currentClassFilter === 'الكل') filteredStudentIds = allIds;
+            else filteredStudentIds = allIds.filter(id => studentsData[id] && studentsData[id].section === currentClassFilter);
+
+            if (selectedStudentId && !filteredStudentIds.includes(selectedStudentId)) {
+                selectedStudentId = filteredStudentIds.length > 0 ? filteredStudentIds[0] : null;
             }
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognizer = new SR();
-            recognizer.lang = 'ar-SA';
-            recognizer.continuous = true;
-            recognizer.interimResults = true;
-            finalTranscript = '';
+            if (!selectedStudentId && filteredStudentIds.length > 0) selectedStudentId = filteredStudentIds[0];
 
-            recognizer.onresult = (event) => {
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    }
-                }
-                document.getElementById('recordStatus').textContent = '🔴 جارٍ التعرف...';
-            };
+            renderStudentTags();
+            updateNavButtons();
+            updateStudentCount();
 
-            recognizer.onerror = (e) => {
-                if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-                    alert('يرجى السماح بالوصول إلى الميكروفون.');
-                    document.getElementById('recordStatus').textContent = '❌ تم رفض الإذن';
-                    stopRecording();
-                } else if (e.error === 'no-speech') {
-                    document.getElementById('recordStatus').textContent = '⏳ انتظار الصوت...';
-                } else {
-                    document.getElementById('recordStatus').textContent = '❌ خطأ: ' + e.error;
-                }
-            };
-
-            recognizer.onend = () => {
-                if (isRecording) {
-                    startContinuousRecognition();
-                } else {
-                    if (finalTranscript.trim().length > 0) {
-                        processSpokenText(finalTranscript.trim());
-                    } else {
-                        document.getElementById('recordStatus').textContent = '⚠️ لم يتم التعرف على أي نص. حاول مرة أخرى.';
-                    }
-                    document.getElementById('recordBtn').classList.remove('recording');
-                    document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i>';
-                    document.getElementById('recordStatus').textContent = '⏹️ متوقف';
-                    isRecording = false;
-                }
-            };
-
-            recognizer.start();
-            isRecording = true;
-            startTime = new Date();
+            if (selectedStudentId && studentsData[selectedStudentId]) loadStudentData(selectedStudentId);
+            else {
+                resetAnalysis();
+                document.getElementById('selectedStudentDisplay').textContent = 'لا يوجد طلاب في هذا الفصل';
+                document.getElementById('studentNameDisplay').value = '';
+            }
+            saveToLocalStorage();
         }
 
-        function stopRecording() {
-            if (recognizer) {
-                try { recognizer.stop(); } catch (e) {}
-                recognizer = null;
-            }
-            isRecording = false;
-            endTime = new Date();
-            document.getElementById('recordBtn').classList.remove('recording');
-            document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i>';
-            document.getElementById('recordStatus').textContent = '⏹️ متوقف';
-        }
-
-        document.getElementById('recordBtn').addEventListener('click', function() {
-            if (isRecording) {
-                stopRecording();
-            } else {
-                startContinuousRecognition();
-                document.getElementById('recordBtn').classList.add('recording');
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-stop-circle"></i>';
-                document.getElementById('recordStatus').textContent = '🔴 جارٍ التسجيل... اضغط للإيقاف';
-            }
-        });
-
-        // =====================================================================
-        // 8. أيقونة تصحيح الأخطاء
-        // =====================================================================
-        document.getElementById('playCorrectBtn').addEventListener('click', function() {
-            const text = ORIGINAL_TEXT;
-            if (!text || text.trim().length === 0) {
-                alert('لا يوجد نص ليتم قراءته. قم بتحميل نص أولاً.');
-                return;
-            }
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                this.classList.remove('playing');
-                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
-                return;
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ar-SA';
-            utterance.rate = 0.9;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-            const voices = window.speechSynthesis.getVoices();
-            const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
-            if (arabicVoice) utterance.voice = arabicVoice;
-
-            utterance.onstart = () => {
-                this.classList.add('playing');
-                this.innerHTML = '<i class="fas fa-stop-circle"></i> إيقاف القراءة';
-                document.getElementById('recordStatus').textContent = '🔊 جارٍ قراءة النص بصحيح...';
-            };
-            utterance.onend = () => {
-                this.classList.remove('playing');
-                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
-                document.getElementById('recordStatus').textContent = '✅ تمت القراءة الصحيحة';
-            };
-            utterance.onerror = () => {
-                this.classList.remove('playing');
-                this.innerHTML = '<i class="fas fa-headphones"></i> تصحيح الأخطاء';
-                document.getElementById('recordStatus').textContent = '❌ خطأ في القراءة الصوتية';
-            };
-            window.speechSynthesis.speak(utterance);
-            speechSynthesisUtterance = utterance;
-        });
-        window.speechSynthesis.getVoices();
-
-        // =====================================================================
-        // 9. رفع النص
-        // =====================================================================
-        document.getElementById('uploadTextBtn').addEventListener('click', () => {
-            document.getElementById('textFileInput').click();
-        });
-        document.getElementById('textFileInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            try {
-                document.getElementById('recordStatus').textContent = '⏳ جارٍ قراءة الملف...';
-                const text = await extractTextFromFile(file);
-                if (text.trim().length > 0) {
-                    ORIGINAL_TEXT = text.trim();
-                    document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
-                    document.getElementById('recordStatus').textContent = '✅ تم تحميل النص الجديد';
-                    document.getElementById('recText').textContent = 'تم تغيير النص، سجل قراءة الطالب.';
-                    resetAnalysis();
-                } else {
-                    alert('الملف فارغ أو لا يحتوي على نص مقروء.');
-                }
-            } catch (err) {
-                alert('خطأ في قراءة الملف: ' + err.message);
-                document.getElementById('recordStatus').textContent = '❌ فشل تحميل النص';
-            }
-            e.target.value = '';
-        });
-
-        // =====================================================================
-        // 10. رفع الطلاب
-        // =====================================================================
-        function handleFile(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                    const rows = json.slice(1);
-                    students = [];
-                    window.studentData = {};
-                    for (const row of rows) {
-                        if (!row[0]) continue;
-                        const name = String(row[0]).trim();
-                        students.push(name);
-                        window.studentData[name] = {
-                            grade: row[1] ? String(row[1]).trim() : '',
-                            section: row[2] ? String(row[2]).trim() : '',
-                            teacher: row[3] ? String(row[3]).trim() : '',
-                            school: row[4] ? String(row[4]).trim() : ''
-                        };
-                    }
-                    if (students.length === 0) { alert('لم يتم العثور على أسماء.');
-                        return; }
-                    selectedStudent = students[0] || null;
-                    renderStudents();
-                    resetAnalysis();
-                    if (selectedStudent) {
-                        document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
-                        document.getElementById('studentNameDisplay').value = selectedStudent;
-                        const data = window.studentData[selectedStudent];
-                        if (data) {
-                            document.getElementById('classGrade').value = data.grade;
-                            document.getElementById('classSection').value = data.section;
-                            document.getElementById('teacherName').value = data.teacher;
-                            document.getElementById('schoolName').value = data.school;
-                        }
-                        document.getElementById('recText').textContent = 'تم تحميل ' + students.length + ' طالب.';
-                    }
-                } catch (err) { alert('خطأ في الملف: ' + err.message); }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
-        });
-
-        // =====================================================================
-        // 11. عرض الطلاب
-        // =====================================================================
-        function renderStudents() {
+        function renderStudentTags() {
             const grid = document.getElementById('studentGrid');
             grid.innerHTML = '';
-            if (!students || students.length === 0) {
-                grid.innerHTML = '<span class="text-muted">لا يوجد طلاب، قم برفع ملف Excel</span>';
+            if (filteredStudentIds.length === 0) {
+                grid.innerHTML = '<span class="text-muted" style="padding:8px 0;">لا يوجد طلاب في هذا الفصل</span>';
                 return;
             }
-            students.forEach((name) => {
+            filteredStudentIds.forEach((id) => {
+                const student = studentsData[id];
+                if (!student) return;
+                const name = student.name || 'بدون اسم';
                 const tag = document.createElement('span');
-                tag.className = 'student-tag' + (selectedStudent === name ? ' active' : '');
-                tag.textContent = name;
-                if (selectedStudent === name) {
+                tag.className = 'student-tag' + (selectedStudentId === id ? ' active' : '');
+                tag.dataset.id = id;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = name;
+                nameSpan.style.cursor = 'pointer';
+                nameSpan.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (selectedStudentId !== id) {
+                        if (micState === 'listening' || micState === 'speaking') stopRecording('الانتقال إلى طالب آخر');
+                        selectedStudentId = id;
+                        loadStudentData(id);
+                        renderStudentTags();
+                        updateNavButtons();
+                        resetMicrophone();
+                    }
+                });
+                tag.appendChild(nameSpan);
+
+                if (student.section) {
+                    const classBadge = document.createElement('span');
+                    classBadge.className = 'class-badge';
+                    classBadge.textContent = student.section;
+                    tag.appendChild(classBadge);
+                }
+
+                const deleteIcon = document.createElement('span');
+                deleteIcon.className = 'delete-icon';
+                deleteIcon.innerHTML = '<i class="fas fa-times"></i>';
+                deleteIcon.title = 'حذف الطالب';
+                deleteIcon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteStudent(id);
+                });
+                tag.appendChild(deleteIcon);
+
+                if (selectedStudentId === id) {
                     const badge = document.createElement('span');
                     badge.className = 'badge';
                     badge.textContent = '✓';
                     tag.appendChild(badge);
                 }
-                tag.addEventListener('click', () => {
-                    selectedStudent = name;
-                    document.getElementById('selectedStudentDisplay').textContent = '👤 ' + name;
-                    document.getElementById('studentNameDisplay').value = name;
-                    const data = window.studentData[name];
-                    if (data) {
-                        document.getElementById('classGrade').value = data.grade;
-                        document.getElementById('classSection').value = data.section;
-                        document.getElementById('teacherName').value = data.teacher;
-                        document.getElementById('schoolName').value = data.school;
-                    }
-                    renderStudents();
-                    resetAnalysis();
-                    document.getElementById('recText').textContent = 'تم اختيار ' + name + '، قم بتسجيل القراءة.';
-                });
                 grid.appendChild(tag);
             });
-            if (selectedStudent) {
-                document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
+
+            if (selectedStudentId && studentsData[selectedStudentId]) {
+                document.getElementById('selectedStudentDisplay').textContent = '👤 ' + studentsData[selectedStudentId].name;
+                document.getElementById('studentNameDisplay').value = studentsData[selectedStudentId].name;
             } else {
                 document.getElementById('selectedStudentDisplay').textContent = 'لم يتم اختيار طالب';
+                document.getElementById('studentNameDisplay').value = '';
             }
         }
 
-        // =====================================================================
-        // 12. إعادة ضبط
-        // =====================================================================
+        function loadStudentData(studentId) {
+            if (isLoading) return;
+            isLoading = true;
+
+            const student = studentsData[studentId];
+            if (!student) { isLoading = false; return; }
+
+            document.getElementById('selectedStudentDisplay').textContent = '👤 ' + student.name;
+            document.getElementById('studentNameDisplay').value = student.name;
+            document.getElementById('classGrade').value = student.grade || '';
+            document.getElementById('classSection').value = student.section || '';
+            document.getElementById('teacherName').value = student.teacher || '';
+            document.getElementById('schoolName').value = student.school || '';
+
+            if (student.latestReport) {
+                displayReportData(student.latestReport);
+                document.getElementById('statErrors').textContent = student.latestReport.errors || 0;
+                document.getElementById('statAccuracy').textContent = (student.latestReport.accuracy || 0) + '%';
+                document.getElementById('statWords').textContent = student.latestReport.wordCount || 0;
+                document.getElementById('statMadd').textContent = student.latestReport.details?.maddErrors || 0;
+                document.getElementById('recText').textContent = student.latestReport.recommendation || '';
+            } else {
+                resetAnalysis();
+                document.getElementById('recText').textContent = 'لا يوجد تقرير سابق. قم بتسجيل قراءته.';
+            }
+
+            updateNavButtons();
+            renderStudentTags();
+            saveToLocalStorage();
+            resetMicrophone();
+
+            if (window.__firebaseReady && window.__user) {
+                const db = window.__db;
+                db.collection('students').doc(studentId).collection('reports')
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .get()
+                    .then((snapshot) => {
+                        const reports = [];
+                        snapshot.forEach(doc => reports.push(doc.data()));
+                        if (reports.length > 0) {
+                            studentsData[studentId].reports = reports;
+                            studentsData[studentId].latestReport = reports[0];
+                            if (selectedStudentId === studentId) {
+                                displayReportData(reports[0]);
+                                document.getElementById('statErrors').textContent = reports[0].errors || 0;
+                                document.getElementById('statAccuracy').textContent = (reports[0].accuracy || 0) + '%';
+                                document.getElementById('statWords').textContent = reports[0].wordCount || 0;
+                                document.getElementById('statMadd').textContent = reports[0].details?.maddErrors || 0;
+                                document.getElementById('recText').textContent = reports[0].recommendation || '';
+                            }
+                            saveToLocalStorage();
+                        }
+                        isLoading = false;
+                    })
+                    .catch((err) => { console.debug('⏳ فشل جلب التقارير:', err.message);
+                        isLoading = false; });
+            } else { isLoading = false; }
+        }
+
+        function navigateStudent(direction) {
+            if (filteredStudentIds.length === 0) return;
+            if (micState === 'listening' || micState === 'speaking') stopRecording('الانتقال إلى طالب آخر');
+
+            const currentIndex = filteredStudentIds.indexOf(selectedStudentId);
+            let newIndex = currentIndex + direction;
+            if (newIndex < 0) newIndex = filteredStudentIds.length - 1;
+            if (newIndex >= filteredStudentIds.length) newIndex = 0;
+            if (newIndex === currentIndex) return;
+
+            const newId = filteredStudentIds[newIndex];
+            if (newId && studentsData[newId]) {
+                saveCurrentStudent();
+                selectedStudentId = newId;
+                loadStudentData(newId);
+                renderStudentTags();
+                updateNavButtons();
+                resetMicrophone();
+            }
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prevStudentBtn');
+            const nextBtn = document.getElementById('nextStudentBtn');
+            const counter = document.getElementById('studentCounter');
+            const total = filteredStudentIds.length;
+            const currentIndex = filteredStudentIds.indexOf(selectedStudentId);
+            if (total === 0) { prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                counter.textContent = '0 / 0'; return; }
+            prevBtn.disabled = (currentIndex <= 0);
+            nextBtn.disabled = (currentIndex >= total - 1);
+            counter.textContent = (currentIndex + 1) + ' / ' + total;
+        }
+
+        function updateStudentCount() {
+            document.getElementById('studentCountLabel').textContent = '(' + filteredStudentIds.length + ')';
+        }
+
+        function saveCurrentStudent() {
+            if (!selectedStudentId || !studentsData[selectedStudentId]) {
+                showToast('لا يوجد طالب محدد للحفظ', 'error');
+                return;
+            }
+            const student = studentsData[selectedStudentId];
+            const grade = document.getElementById('classGrade').value.trim();
+            const section = document.getElementById('classSection').value.trim();
+            const teacher = document.getElementById('teacherName').value.trim();
+            const school = document.getElementById('schoolName').value.trim();
+
+            let changed = false;
+            if (student.grade !== grade) { student.grade = grade;
+                changed = true; }
+            if (student.section !== section) { student.section = section;
+                changed = true; }
+            if (student.teacher !== teacher) { student.teacher = teacher;
+                changed = true; }
+            if (student.school !== school) { student.school = school;
+                changed = true; }
+
+            if (changed) {
+                saveToLocalStorage();
+                if (window.__firebaseReady && window.__user) {
+                    const db = window.__db;
+                    db.collection('students').doc(selectedStudentId).update({
+                        grade,
+                        section,
+                        teacher,
+                        school,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).catch(() => {});
+                }
+                renderStudentTags();
+                showToast('✅ تم حفظ بيانات الطالب', 'success', 1200);
+            } else {
+                showToast('ℹ️ لم يتم تغيير أي بيانات', 'info', 1200);
+            }
+        }
+
         function resetAnalysis() {
             document.getElementById('statErrors').textContent = '0';
             document.getElementById('statAccuracy').textContent = '0%';
@@ -1435,6 +2530,7 @@
             document.getElementById('statMadd').textContent = '0';
             document.getElementById('recText').textContent = 'قم بتسجيل قراءة الطالب.';
             document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+            document.getElementById('comparisonContent').textContent = 'لم يتم تسجيل قراءة بعد.';
             updateCharts({ errors: 0, totalChars: 1, details: { maddErrors: 0, letterErrors: 0 } });
             document.getElementById('rStudent').textContent = '—';
             document.getElementById('rGrade').textContent = '—';
@@ -1456,337 +2552,998 @@
             document.getElementById('fluencyLevel').textContent = '—';
             document.getElementById('fluencyLevel').className = 'badge-fluency fluency-medium';
             currentReport = null;
-            document.getElementById('recordStatus').textContent = 'تم إعادة الضبط';
+            document.getElementById('recordStatus').innerHTML =
+                `<span class="status-dot idle"></span><span>جاهز للتسجيل</span>`;
+            resetMicrophone();
+            saveToLocalStorage();
+            showToast('🔄 تم إعادة الضبط', 'info', 1200);
         }
 
-        // =====================================================================
-        // 13. تصدير Excel بتنسيق احترافي (مطابق لـ openpyxl)
-        // =====================================================================
-        function exportToExcel() {
-            if (!currentReport) {
-                alert('لا توجد بيانات تقرير.');
+        function deleteStudent(studentId) {
+            if (!studentId) return;
+            const studentName = studentsData[studentId]?.name || 'هذا الطالب';
+            if (!confirm(`⚠️ هل أنت متأكد من حذف "${studentName}"؟`)) return;
+
+            if (window.__firebaseReady && window.__user) {
+                const db = window.__db;
+                db.collection('students').doc(studentId).delete()
+                    .then(() => {
+                        const reportsRef = db.collection('students').doc(studentId).collection('reports');
+                        reportsRef.get().then((snapshot) => {
+                            const batch = db.batch();
+                            snapshot.forEach(doc => batch.delete(doc.ref));
+                            return batch.commit();
+                        }).catch(() => {});
+                    })
+                    .catch((err) => console.warn('⚠️ فشل حذف الطالب من Firebase:', err));
+            }
+
+            delete studentsData[studentId];
+            for (const key in window.studentData) {
+                if (window.studentData[key].studentId === studentId) { delete window.studentData[key]; break; }
+            }
+            const index = filteredStudentIds.indexOf(studentId);
+            if (index !== -1) filteredStudentIds.splice(index, 1);
+
+            if (selectedStudentId === studentId) {
+                selectedStudentId = filteredStudentIds.length > 0 ? filteredStudentIds[0] : null;
+                if (selectedStudentId) loadStudentData(selectedStudentId);
+                else {
+                    resetAnalysis();
+                    document.getElementById('selectedStudentDisplay').textContent = 'لم يتم اختيار طالب';
+                    document.getElementById('studentNameDisplay').value = '';
+                }
+            }
+            saveToLocalStorage();
+            renderStudentTags();
+            updateNavButtons();
+            updateStudentCount();
+            resetMicrophone();
+            showToast(`🗑️ تم حذف "${studentName}"`, 'info', 1500);
+        }
+
+        function deleteCurrentStudent() {
+            if (!selectedStudentId) { showToast('لا يوجد طالب محدد للحذف', 'error'); return; }
+            deleteStudent(selectedStudentId);
+        }
+
+        function addStudent() {
+            const name = prompt('✏️ أدخل اسم الطالب الجديد:');
+            if (!name || name.trim() === '') return;
+            const trimmedName = name.trim();
+            for (const id in studentsData) {
+                if (studentsData[id].name === trimmedName) {
+                    showToast(`⚠️ يوجد طالب بالفعل باسم "${trimmedName}"`, 'error');
+                    return;
+                }
+            }
+            const studentId = generateStudentId();
+            const defaultSection = currentClassFilter !== 'الكل' ? currentClassFilter : (classList.length > 0 ? classList[0] :
+                '');
+            const studentObj = {
+                name: trimmedName,
+                grade: '',
+                section: defaultSection,
+                teacher: '',
+                school: '',
+                reports: [],
+                latestReport: null
+            };
+            studentsData[studentId] = studentObj;
+            window.studentData[trimmedName] = {
+                grade: '',
+                section: defaultSection,
+                teacher: '',
+                school: '',
+                studentId: studentId
+            };
+
+            if (window.__firebaseReady && window.__user) {
+                const db = window.__db;
+                db.collection('students').doc(studentId).set({
+                    name: trimmedName,
+                    grade: '',
+                    section: defaultSection,
+                    teacher: '',
+                    school: '',
+                    class: defaultSection,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch((err) => console.warn('⚠️ فشل رفع الطالب الجديد:', err));
+            }
+
+            saveToLocalStorage();
+            filterStudentsByClass();
+            selectedStudentId = studentId;
+            loadStudentData(studentId);
+            renderStudentTags();
+            updateNavButtons();
+            updateStudentCount();
+            resetMicrophone();
+            showToast(`✅ تم إضافة الطالب "${trimmedName}"`, 'success');
+        }
+
+        function deleteAllStudents() {
+            const count = Object.keys(studentsData).length;
+            if (count === 0) { showToast('📭 لا يوجد طلاب لحذفهم', 'info'); return; }
+            if (!confirm(
+                    `⚠️⚠️ تحذير شديد ⚠️⚠️\n\nهل أنت متأكد من حذف جميع الطلاب (${count} طالب)؟\nلا يمكن التراجع عن هذا الإجراء.`
+                    )) return;
+            if (!confirm(`❗ تأكيد نهائي: هل تريد حذف جميع الطلاب وتقاريرهم نهائياً؟`)) return;
+
+            if (window.__firebaseReady && window.__user) {
+                const db = window.__db;
+                const studentIds = Object.keys(studentsData);
+                const batch = db.batch();
+                studentIds.forEach(id => {
+                    const studentRef = db.collection('students').doc(id);
+                    batch.delete(studentRef);
+                    db.collection('students').doc(id).collection('reports').get()
+                        .then((snapshot) => {
+                            const subBatch = db.batch();
+                            snapshot.forEach(doc => subBatch.delete(doc.ref));
+                            return subBatch.commit();
+                        }).catch(() => {});
+                });
+                batch.commit().catch((err) => console.warn('⚠️ فشل حذف جميع الطلاب من Firebase:', err));
+            }
+
+            studentsData = {};
+            window.studentData = {};
+            selectedStudentId = null;
+            filteredStudentIds = [];
+            resetAnalysis();
+            saveToLocalStorage();
+            renderStudentTags();
+            updateNavButtons();
+            updateStudentCount();
+            document.getElementById('selectedStudentDisplay').textContent = 'لم يتم اختيار طالب';
+            document.getElementById('studentNameDisplay').value = '';
+            resetMicrophone();
+            showToast('🗑️ تم حذف جميع الطلاب', 'info', 1500);
+        }
+
+        // ================================================================
+        // 13. التصدير - بطاقة تقييم القراءة
+        // ================================================================
+
+        function exportReadingEvaluation() {
+            if (!selectedStudentId) {
+                showToast('⚠️ اختر طالباً أولاً', 'error');
+                return;
+            }
+            const student = studentsData[selectedStudentId];
+            if (!student) {
+                showToast('⚠️ بيانات الطالب غير موجودة', 'error');
                 return;
             }
 
+            // جمع بيانات التقييم من الواجهة
+            collectEvaluationData();
+
+            // إنشاء مصنف جديد
             const wb = XLSX.utils.book_new();
             wb.Workbook = { Views: [{ RTL: true }] };
-            const ws = XLSX.utils.aoa_to_sheet([]);
 
-            // --- 1. العنوان الرئيسي ---
-            XLSX.utils.sheet_add_aoa(ws, [
-                ['منصة قراءتي — التقرير العلاجي والتشخيصي المتقدم'],
-                ['تقرير أداء الطلاقة القرائية والتحليل التشخيصي المهاراتي | تم استخراج التقرير آلياً']
-            ], { origin: 'A1' });
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
-            ];
-            // تنسيق الخلايا (محاكاة openpyxl)
-            const styleTitle = {
-                fill: { fgColor: { rgb: "0B2A4A" } },
-                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 20, name: "Segoe UI" },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-            const styleSub = {
-                fill: { fgColor: { rgb: "1A4A6A" } },
-                font: { italic: true, color: { rgb: "FFD966" }, sz: 12, name: "Segoe UI" },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-            ws['A1'].s = styleTitle;
-            ws['A2'].s = styleSub;
+            // إنشاء ورقة تقييم القراءة
+            const wsData = buildEvaluationSheet(student);
+            XLSX.utils.book_append_sheet(wb, wsData, '📖 تقرير تقييم القراءة');
 
-            // --- 2. بيانات الطالب ---
-            const studentRows = [
-                ['اسم الطالب:', currentReport.student, 'الصف / الفصل:', currentReport.grade + ' / ' + currentReport.section, 'تاريخ الأداء:', currentReport.date],
-                ['اسم المعلم:', currentReport.teacher, 'اسم المدرسة:', currentReport.school, 'وقت التقرير:', currentReport.reportTime],
-                ['عنوان النص:', currentReport.textTitle, 'مدة القراءة:', currentReport.duration, 'نوع التقييم:', 'تشخيصي علاجي']
-            ];
-            XLSX.utils.sheet_add_aoa(ws, studentRows, { origin: 'A6' });
+            // محاولة تحميل الملف الحالي وإضافة الورقة إليه
+            // نظراً لقيود المتصفح، سنقوم بإنشاء ملف جديد مع الورقة المطلوبة
+            // مع إمكانية دمجها لاحقاً عبر تحميل الملف ودمجه يدوياً
 
-            // تنسيق صفوف الطالب
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 6; c++) {
-                    const addr = XLSX.utils.encode_cell({ r: 5 + r, c: c });
-                    const cell = ws[addr];
-                    if (cell) {
-                        cell.s = {
-                            fill: { fgColor: { rgb: (c % 2 === 0) ? "E2E8F0" : "FFFFFF" } },
-                            font: { bold: (c % 2 === 0), color: { rgb: "0B2A4A" }, sz: 11 },
-                            border: {
-                                top: { style: "thin", color: { rgb: "0B2A4A" } },
-                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
-                                left: { style: "thin", color: { rgb: "0B2A4A" } },
-                                right: { style: "thin", color: { rgb: "0B2A4A" } }
-                            },
-                            alignment: { horizontal: "center", vertical: "center" }
-                        };
-                    }
+            const fileName =
+                `تقييم_القراءة_${student.name}_${formatDateAr(new Date()).replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast('✅ تم تصدير بطاقة تقييم القراءة', 'success');
+        }
+
+        function collectEvaluationData() {
+            // جمع بيانات القراءة الجهرية
+            const oralSkills = document.querySelectorAll('.oral-skill-radio:checked');
+            const oralData = readingEvaluationData.oralReading.skills;
+            oralSkills.forEach(radio => {
+                const idx = parseInt(radio.dataset.index);
+                if (oralData[idx]) {
+                    oralData[idx].score = parseInt(radio.value);
                 }
+            });
+            readingEvaluationData.oralReading.total = oralData.reduce((sum, s) => sum + s.score, 0);
+
+            // جمع بيانات الفهم القرائي
+            const compSkills = document.querySelectorAll('.comp-skill-radio:checked');
+            const compData = readingEvaluationData.comprehension.skills;
+            compSkills.forEach(radio => {
+                const idx = parseInt(radio.dataset.index);
+                if (compData[idx]) {
+                    compData[idx].score = parseInt(radio.value);
+                }
+            });
+            readingEvaluationData.comprehension.total = compData.reduce((sum, s) => sum + s.score, 0);
+
+            // جمع مؤشرات الطلاقة والدقة
+            const fluency = readingEvaluationData.fluency;
+            const wordCountInput = document.getElementById('evalWordCount');
+            const timeInput = document.getElementById('evalTime');
+            const errorsInput = document.getElementById('evalErrors');
+            const correctInput = document.getElementById('evalCorrect');
+            const stopsInput = document.getElementById('evalStops');
+            const repeatsInput = document.getElementById('evalRepeats');
+
+            if (wordCountInput) fluency.wordCount = parseInt(wordCountInput.value) || 0;
+            if (timeInput) fluency.timeSeconds = parseInt(timeInput.value) || 0;
+            if (errorsInput) fluency.errors = parseInt(errorsInput.value) || 0;
+            if (correctInput) fluency.correctWords = parseInt(correctInput.value) || 0;
+            if (stopsInput) fluency.stops = parseInt(stopsInput.value) || 0;
+            if (repeatsInput) fluency.repeats = parseInt(repeatsInput.value) || 0;
+
+            if (fluency.timeSeconds > 0 && fluency.wordCount > 0) {
+                fluency.wordsPerMinute = Math.round((fluency.wordCount / fluency.timeSeconds) * 60);
+            } else {
+                fluency.wordsPerMinute = 0;
+            }
+            if (fluency.wordCount > 0) {
+                fluency.accuracy = Math.round((fluency.correctWords / fluency.wordCount) * 100);
+            } else {
+                fluency.accuracy = 0;
             }
 
-            // --- 3. مؤشرات الأداء الرئيسية ---
-            XLSX.utils.sheet_add_aoa(ws, [
-                ['مؤشرات الأداء الرئيسية'],
-                ['إجمالي الكلمات', currentReport.wordCount, 'نسبة الدقة', currentReport.accuracy + '%', 'الأخطاء', currentReport.errors, 'السرعة', currentReport.fluency.wordsPerMinute]
-            ], { origin: 'A10' });
-
-            ws['!merges'].push({ s: { r: 9, c: 0 }, e: { r: 9, c: 7 } });
-            ws['A10'].s = {
-                fill: { fgColor: { rgb: "1A4A6A" } },
-                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-
-            const cardColors = ["F1F5F9", "ECFDF5", "FEF2F2", "EFF6FF"];
-            const cardTextColors = ["0B2A4A", "059669", "DC2626", "2563EB"];
-            for (let c = 0; c < 8; c += 2) {
-                const addrL = XLSX.utils.encode_cell({ r: 10, c: c });
-                const addrV = XLSX.utils.encode_cell({ r: 10, c: c + 1 });
-                if (ws[addrL]) {
-                    ws[addrL].s = {
-                        fill: { fgColor: { rgb: cardColors[c / 2] } },
-                        font: { bold: true, color: { rgb: "4B5563" }, sz: 10 },
-                        border: {
-                            top: { style: "thin", color: { rgb: "0B2A4A" } },
-                            bottom: { style: "thin", color: { rgb: "0B2A4A" } },
-                            left: { style: "thin", color: { rgb: "0B2A4A" } },
-                            right: { style: "thin", color: { rgb: "0B2A4A" } }
-                        },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
+            // جمع أنواع الأخطاء
+            const errorTypes = readingEvaluationData.errorTypes;
+            document.querySelectorAll('.error-type-checkbox:checked').forEach(cb => {
+                const key = cb.dataset.key;
+                if (key && errorTypes.hasOwnProperty(key)) {
+                    errorTypes[key] = true;
                 }
-                if (ws[addrV]) {
-                    ws[addrV].s = {
-                        fill: { fgColor: { rgb: cardColors[c / 2] } },
-                        font: { bold: true, color: { rgb: cardTextColors[c / 2] }, sz: 20 },
-                        border: {
-                            top: { style: "thin", color: { rgb: "0B2A4A" } },
-                            bottom: { style: "thin", color: { rgb: "0B2A4A" } },
-                            left: { style: "thin", color: { rgb: "0B2A4A" } },
-                            right: { style: "thin", color: { rgb: "0B2A4A" } }
-                        },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                }
-            }
-
-            // --- 4. جدول المهارات ---
-            XLSX.utils.sheet_add_aoa(ws, [
-                ['تحليل المهارات القرائية ومستوى الإتقان'],
-                ['المهارة', 'عدد الفرص', 'الأخطاء', 'نسبة الإتقان', 'مستوى التقييم']
-            ], { origin: 'A13' });
-
-            ws['!merges'].push({ s: { r: 12, c: 0 }, e: { r: 12, c: 4 } });
-            ws['A13'].s = {
-                fill: { fgColor: { rgb: "0B2A4A" } },
-                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-            for (let c = 0; c < 5; c++) {
-                const cell = ws[XLSX.utils.encode_cell({ r: 13, c: c })];
-                if (cell) {
-                    cell.s = {
-                        fill: { fgColor: { rgb: "1A4A6A" } },
-                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
-                        border: {
-                            top: { style: "medium", color: { rgb: "0B2A4A" } },
-                            bottom: { style: "medium", color: { rgb: "0B2A4A" } },
-                            left: { style: "medium", color: { rgb: "0B2A4A" } },
-                            right: { style: "medium", color: { rgb: "0B2A4A" } }
-                        },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                }
-            }
-
-            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
-            const skillOpportunities = [25, 15, 10, 8, 8, 45];
-            for (let i = 0; i < skillNames.length; i++) {
-                const row = 14 + i;
-                const skillData = currentReport.skills[skillNames[i]] || { score: 0, label: 'يحتاج علاج' };
-                const score = skillData.score;
-                const errors = Math.round((100 - score) / 100 * skillOpportunities[i]);
-
-                XLSX.utils.sheet_add_aoa(ws, [
-                    [skillNames[i], skillOpportunities[i], errors, score + '%', skillData.label]
-                ], { origin: `A${row+1}` });
-
-                let bgColor = "FFFFFF";
-                if (score >= 90) bgColor = "D4EFDF";
-                else if (score >= 80) bgColor = "D6EAF8";
-                else if (score >= 70) bgColor = "FDEBD0";
-                else bgColor = "FADBD8";
-
-                for (let c = 0; c < 5; c++) {
-                    const cell = ws[XLSX.utils.encode_cell({ r: row, c: c })];
-                    if (cell) {
-                        cell.s = {
-                            fill: { fgColor: { rgb: bgColor } },
-                            font: { bold: (c === 4), color: { rgb: "0B2A4A" }, sz: 11 },
-                            border: {
-                                top: { style: "thin", color: { rgb: "0B2A4A" } },
-                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
-                                left: { style: "thin", color: { rgb: "0B2A4A" } },
-                                right: { style: "thin", color: { rgb: "0B2A4A" } }
-                            },
-                            alignment: { horizontal: "center", vertical: "center" }
-                        };
-                    }
-                }
-            }
-
-            // --- 5. التوصيات والخطة العلاجية ---
-            XLSX.utils.sheet_add_aoa(ws, [
-                ['التوصيات العلاجية وخطة التحدي القادمة'],
-                [currentReport.challenge + '\n' + currentReport.recommendation]
-            ], { origin: 'A21' });
-
-            ws['!merges'].push({ s: { r: 20, c: 0 }, e: { r: 20, c: 4 } });
-            ws['!merges'].push({ s: { r: 21, c: 0 }, e: { r: 21, c: 4 } });
-            ws['A21'].s = {
-                fill: { fgColor: { rgb: "FEF3C7" } },
-                font: { bold: true, color: { rgb: "0B2A4A" }, sz: 13 },
-                border: {
-                    top: { style: "medium", color: { rgb: "E67E22" } },
-                    bottom: { style: "medium", color: { rgb: "E67E22" } },
-                    left: { style: "medium", color: { rgb: "E67E22" } },
-                    right: { style: "medium", color: { rgb: "E67E22" } }
-                },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-            ws['A22'].s = {
-                fill: { fgColor: { rgb: "FEF9E7" } },
-                font: { color: { rgb: "0B2A4A" }, sz: 11 },
-                border: {
-                    top: { style: "medium", color: { rgb: "E67E22" } },
-                    bottom: { style: "medium", color: { rgb: "E67E22" } },
-                    left: { style: "medium", color: { rgb: "E67E22" } },
-                    right: { style: "medium", color: { rgb: "E67E22" } }
-                },
-                alignment: { horizontal: "right", vertical: "top", wrapText: true }
-            };
-
-            // --- 6. سجل القراءة التفصيلي (جدول الكلمات) ---
-            let origWords = currentReport.origRawWords || ORIGINAL_TEXT.trim().split(/\s+/).filter(w => w.length > 0);
-            let wordCorrect = currentReport.wordCorrect || new Array(origWords.length).fill(true);
-            if (origWords.length === 0) {
-                origWords = ['في', 'رحابِ', 'المدرسةِ', 'كانَ', 'الطلابُ', 'يقرؤونَ', 'قصائدَ', 'العربِ', 'ويحفظونَ', 'حكمَ', 'الأجدادِ', 'وكانَ', 'المعلمُ', 'يشرحُ', 'لهمْ', 'دروسَ', 'النحوِ', 'والبلاغةِ', 'ويسألُهمْ', 'عنْ'];
-                wordCorrect = new Array(origWords.length).fill(true);
-                [4, 8, 15].forEach(idx => { if (idx < wordCorrect.length) wordCorrect[idx] = false; });
-            }
-
-            const logData = [];
-            const errorTypes = ['إبدال حرف', 'ترك المد', 'حركة / تشكيل', 'إضافة حرف', 'حذف حرف'];
-            const errorDetails = ['ص / س', 'ا', 'ضمة', 'زائد', 'ناقص'];
-
-            origWords.forEach((w, idx) => {
-                const isError = (idx < wordCorrect.length) ? !wordCorrect[idx] : false;
-                let errorType = '-', errorDetail = '-', note = 'نطق صحيح';
-                if (isError) {
-                    const errIdx = idx % errorTypes.length;
-                    errorType = errorTypes[errIdx];
-                    errorDetail = errorDetails[errIdx % errorDetails.length];
-                    note = `خطأ في كلمة "${w}"`;
-                }
-                logData.push([idx + 1, w, isError ? 'خطأ' : 'صحيح', errorType, errorDetail, note]);
             });
 
-            const startRow = 23;
-            XLSX.utils.sheet_add_aoa(ws, [
-                ['سجل القراءة التفصيلي — تفاصيل الكلمات وتحليل نطق الطالب']
-            ], { origin: `A${startRow}` });
-            ws['!merges'].push({ s: { r: startRow - 1, c: 0 }, e: { r: startRow - 1, c: 5 } });
-            ws[`A${startRow}`].s = {
-                fill: { fgColor: { rgb: "1A4A6A" } },
-                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
+            // جمع أسئلة الفهم
+            const compQ = readingEvaluationData.comprehensionQuestions;
+            const q1Input = document.getElementById('compQ1');
+            const q2Input = document.getElementById('compQ2');
+            const q3WordInput = document.getElementById('compQ3Word');
+            const q3AnsInput = document.getElementById('compQ3Answer');
+            const q4WordInput = document.getElementById('compQ4Word');
+            const q4AnsInput = document.getElementById('compQ4Answer');
+            const q5WordInput = document.getElementById('compQ5Word');
+            const q5AnsInput = document.getElementById('compQ5Answer');
+            const q6Input = document.getElementById('compQ6');
+            const q7Input = document.getElementById('compQ7');
+            const q8Input = document.getElementById('compQ8');
 
-            const headers = ['الرقم', 'الكلمة في النص الأصلي', 'حالة النطق', 'نوع الخطأ (إن وجد)', 'الحرف المعني', 'ملاحظات المصحح الآلي'];
-            XLSX.utils.sheet_add_aoa(ws, [headers], { origin: `A${startRow + 1}` });
-            for (let c = 0; c < headers.length; c++) {
-                const cell = ws[XLSX.utils.encode_cell({ r: startRow, c: c })];
-                if (cell) {
-                    cell.s = {
-                        fill: { fgColor: { rgb: "0B2A4A" } },
-                        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
-                        border: {
-                            top: { style: "medium", color: { rgb: "0B2A4A" } },
-                            bottom: { style: "medium", color: { rgb: "0B2A4A" } },
-                            left: { style: "medium", color: { rgb: "0B2A4A" } },
-                            right: { style: "medium", color: { rgb: "0B2A4A" } }
-                        },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-                }
-            }
+            if (q1Input) compQ.q1 = q1Input.value;
+            if (q2Input) compQ.q2 = q2Input.value;
+            if (q3WordInput) compQ.q3_word = q3WordInput.value;
+            if (q3AnsInput) compQ.q3_answer = q3AnsInput.value;
+            if (q4WordInput) compQ.q4_word = q4WordInput.value;
+            if (q4AnsInput) compQ.q4_answer = q4AnsInput.value;
+            if (q5WordInput) compQ.q5_word = q5WordInput.value;
+            if (q5AnsInput) compQ.q5_answer = q5AnsInput.value;
+            if (q6Input) compQ.q6 = q6Input.value;
+            if (q7Input) compQ.q7 = q7Input.value;
+            if (q8Input) compQ.q8 = q8Input.value;
 
-            XLSX.utils.sheet_add_aoa(ws, logData, { origin: `A${startRow + 2}` });
-            for (let i = 0; i < logData.length; i++) {
-                for (let c = 0; c < 6; c++) {
-                    const cell = ws[XLSX.utils.encode_cell({ r: startRow + 1 + i, c: c })];
-                    if (cell) {
-                        let bgColor = (logData[i][2] === 'خطأ') ? "FADBD8" : "FFFFFF";
-                        cell.s = {
-                            fill: { fgColor: { rgb: bgColor } },
-                            font: { color: { rgb: "0B2A4A" }, sz: 11 },
-                            border: {
-                                top: { style: "thin", color: { rgb: "0B2A4A" } },
-                                bottom: { style: "thin", color: { rgb: "0B2A4A" } },
-                                left: { style: "thin", color: { rgb: "0B2A4A" } },
-                                right: { style: "thin", color: { rgb: "0B2A4A" } }
-                            },
-                            alignment: { horizontal: "center", vertical: "center" }
-                        };
-                    }
+            // جمع التحليل والتوصيات
+            const strengthsInput = document.getElementById('evalStrengths');
+            const improvementsInput = document.getElementById('evalImprovements');
+            const recommendationInput = document.getElementById('evalRecommendation');
+            const reevalInput = document.getElementById('evalReevaluationDate');
+            const teacherNameInput = document.getElementById('evalTeacherName');
+            const signatureInput = document.getElementById('evalSignature');
+
+            if (strengthsInput) readingEvaluationData.strengths = strengthsInput.value;
+            if (improvementsInput) readingEvaluationData.improvements = improvementsInput.value;
+            if (recommendationInput) readingEvaluationData.recommendation = recommendationInput.value;
+            if (reevalInput) readingEvaluationData.reevaluationDate = reevalInput.value;
+            if (teacherNameInput) readingEvaluationData.teacherName = teacherNameInput.value;
+            if (signatureInput) readingEvaluationData.teacherSignature = signatureInput.value;
+
+            // خطة علاجية
+            const treatmentPlan = readingEvaluationData.treatmentPlan;
+            document.querySelectorAll('.treatment-checkbox:checked').forEach(cb => {
+                const key = cb.dataset.key;
+                if (key && treatmentPlan.hasOwnProperty(key)) {
+                    treatmentPlan[key] = true;
                 }
+            });
+
+            // حساب الدرجة النهائية
+            const oralTotal = readingEvaluationData.oralReading.total || 0;
+            const compTotal = readingEvaluationData.comprehension.total || 0;
+            const total = oralTotal + compTotal;
+            const maxTotal = 64;
+            readingEvaluationData.finalScore = total;
+            readingEvaluationData.percentage = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+
+            // تحديد المستوى
+            const pct = readingEvaluationData.percentage;
+            if (pct >= 90) {
+                readingEvaluationData.level = '🟢 متقن جداً';
+                readingEvaluationData.levelClass = 'level-excellent';
+            } else if (pct >= 80) {
+                readingEvaluationData.level = '🟢 متقن';
+                readingEvaluationData.levelClass = 'level-verygood';
+            } else if (pct >= 70) {
+                readingEvaluationData.level = '🟢 جيد جداً';
+                readingEvaluationData.levelClass = 'level-verygood';
+            } else if (pct >= 60) {
+                readingEvaluationData.level = '🟡 جيد';
+                readingEvaluationData.levelClass = 'level-good';
+            } else if (pct >= 50) {
+                readingEvaluationData.level = '🟠 يحتاج إلى متابعة';
+                readingEvaluationData.levelClass = 'level-needs';
+            } else {
+                readingEvaluationData.level = '🔴 يحتاج إلى خطة علاجية';
+                readingEvaluationData.levelClass = 'level-needs';
             }
+        }
+
+        function buildEvaluationSheet(student) {
+            const data = [];
+            const now = new Date();
+
+            // العنوان
+            data.push(['بطاقة تقييم القراءة المتعمقة']);
+            data.push(['تقرير أداء الطالب في القراءة']);
+            data.push([]);
+
+            // بيانات المدرسة
+            const schoolName = document.getElementById('schoolName').value || student.school || '—';
+            data.push(['المدرسة:', schoolName]);
+            data.push([]);
+
+            // بيانات الطالب
+            data.push(['بيانات الطالب']);
+            data.push(['البيان', 'البيانات']);
+            data.push(['اسم الطالب', student.name || '—']);
+            data.push(['الرقم/الكود', student.studentId || '—']);
+            const grade = document.getElementById('classGrade').value || student.grade || '—';
+            data.push(['الصف', grade]);
+            const section = document.getElementById('classSection').value || student.section || '—';
+            data.push(['الفصل', section]);
+            data.push(['تاريخ التقييم', formatDateAr(now)]);
+            const teacher = document.getElementById('teacherName').value || student.teacher || '—';
+            data.push(['اسم المعلم', teacher]);
+            const textTitle = document.getElementById('textTitle').value || '—';
+            data.push(['عنوان النص', textTitle]);
+            data.push([]);
+
+            // القراءة الجهرية
+            data.push(['أولاً: القراءة الجهرية']);
+            data.push(['م', 'مهارة القراءة', '4 ممتاز', '3 جيد جداً', '2 جيد', '1 يحتاج دعم', 'الدرجة']);
+            const oralSkills = readingEvaluationData.oralReading.skills;
+            oralSkills.forEach((skill, idx) => {
+                const score = skill.score || 0;
+                const row = [
+                    idx + 1,
+                    skill.name,
+                    score === 4 ? '☑' : '☐',
+                    score === 3 ? '☑' : '☐',
+                    score === 2 ? '☑' : '☐',
+                    score === 1 ? '☑' : '☐',
+                    score
+                ];
+                data.push(row);
+            });
+            const oralTotal = readingEvaluationData.oralReading.total || 0;
+            data.push(['', 'مجموع القراءة الجهرية:', '', '', '', '', oralTotal + ' / 32']);
+            data.push([]);
+
+            // الفهم القرائي
+            data.push(['ثانياً: الفهم القرائي']);
+            data.push(['م', 'المهارة', '4', '3', '2', '1', 'الدرجة']);
+            const compSkills = readingEvaluationData.comprehension.skills;
+            compSkills.forEach((skill, idx) => {
+                const score = skill.score || 0;
+                const row = [
+                    idx + 1,
+                    skill.name,
+                    score === 4 ? '☑' : '☐',
+                    score === 3 ? '☑' : '☐',
+                    score === 2 ? '☑' : '☐',
+                    score === 1 ? '☑' : '☐',
+                    score
+                ];
+                data.push(row);
+            });
+            const compTotal = readingEvaluationData.comprehension.total || 0;
+            data.push(['', 'مجموع الفهم القرائي:', '', '', '', '', compTotal + ' / 32']);
+            data.push([]);
+
+            // مؤشرات الطلاقة والدقة
+            data.push(['ثالثاً: مؤشرات الطلاقة والدقة']);
+            const fl = readingEvaluationData.fluency;
+            data.push(['المؤشر', 'النتيجة']);
+            data.push(['عدد كلمات النص', fl.wordCount || 0]);
+            data.push(['زمن القراءة بالثواني', fl.timeSeconds || 0]);
+            data.push(['عدد الأخطاء', fl.errors || 0]);
+            data.push(['عدد الكلمات الصحيحة', fl.correctWords || 0]);
+            data.push(['عدد الكلمات في الدقيقة', fl.wordsPerMinute || 0]);
+            data.push(['نسبة الدقة', (fl.accuracy || 0) + '%']);
+            data.push(['عدد مرات التوقف', fl.stops || 0]);
+            data.push(['عدد مرات إعادة الكلمة', fl.repeats || 0]);
+            data.push([]);
+
+            // تحليل أخطاء القراءة
+            data.push(['رابعاً: تحليل أخطاء القراءة']);
+            const errors = readingEvaluationData.errorTypes;
+            const errorList = [
+                ['حذف كلمة', errors.deleteWord],
+                ['إضافة كلمة', errors.addWord],
+                ['إبدال حرف', errors.replaceLetter],
+                ['إبدال كلمة', errors.replaceWord],
+                ['عكس الحروف', errors.reverseLetters],
+                ['صعوبة في الحركات', errors.harakatDifficulty],
+                ['تهجئة بطيئة', errors.slowSpelling],
+                ['توقف متكرر', errors.frequentStops],
+                ['عدم مراعاة علامات الترقيم', errors.punctuationIgnored],
+                ['ضعف في مخارج الحروف', errors.weakMakharij],
+                ['تكرار الكلمات', errors.repeatedWords],
+                ['ضعف في الفهم', errors.weakComprehension]
+            ];
+            const errorRow = errorList.map(e => (e[1] ? '☑' : '☐') + ' ' + e[0]);
+            data.push(errorRow);
+            data.push([]);
+
+            // أسئلة الفهم
+            data.push(['خامساً: أسئلة الفهم القرائي']);
+            const q = readingEvaluationData.comprehensionQuestions;
+            data.push(['1. ما الفكرة الرئيسة للنص؟', q.q1 || '']);
+            data.push(['2. اذكر معلومتين وردتا في النص.', q.q2 || '']);
+            data.push(['3. ما معنى كلمة: ' + (q.q3_word || '') + '؟', q.q3_answer || '']);
+            data.push(['4. ما مرادف كلمة: ' + (q.q4_word || '') + '؟', q.q4_answer || '']);
+            data.push(['5. ما ضد كلمة: ' + (q.q5_word || '') + '؟', q.q5_answer || '']);
+            data.push(['6. ماذا نستنتج من النص؟', q.q6 || '']);
+            data.push(['7. ما القيمة أو الدرس المستفاد من النص؟', q.q7 || '']);
+            data.push(['8. ما رأيك في موقف الشخصية الرئيسة؟ ولماذا؟', q.q8 || '']);
+            data.push([]);
+
+            // النتيجة النهائية
+            data.push(['النتيجة النهائية لتقييم القراءة']);
+            data.push(['المؤشر', 'الدرجة']);
+            data.push(['القراءة الجهرية', oralTotal + ' / 32']);
+            data.push(['الفهم القرائي', compTotal + ' / 32']);
+            data.push(['الدرجة الكلية', readingEvaluationData.finalScore + ' / 64']);
+            data.push(['النسبة المئوية', readingEvaluationData.percentage + '%']);
+            const levelText = readingEvaluationData.level || '—';
+            data.push(['مستوى الطالب', levelText]);
+            data.push([]);
+
+            // التحليل والتوصيات
+            data.push(['نقاط القوة:']);
+            data.push([readingEvaluationData.strengths || '']);
+            data.push([]);
+            data.push(['المهارات التي تحتاج إلى تحسين:']);
+            data.push([readingEvaluationData.improvements || '']);
+            data.push([]);
+            data.push(['التوصية التعليمية:']);
+            data.push([readingEvaluationData.recommendation || '']);
+            data.push([]);
+            data.push(['الخطة العلاجية:']);
+            const plan = readingEvaluationData.treatmentPlan;
+            const planList = [
+                ['التدريب على الحروف والأصوات', plan.lettersSounds],
+                ['التدريب على الحركات', plan.harakat],
+                ['التدريب على قراءة الكلمات', plan.wordReading],
+                ['التدريب على الطلاقة', plan.fluency],
+                ['القراءة النموذجية', plan.modelReading],
+                ['القراءة المتكررة', plan.repeatedReading],
+                ['التدريب على علامات الترقيم', plan.punctuation],
+                ['التدريب على الفهم القرائي', plan.comprehension],
+                ['زيادة الحصيلة اللغوية', plan.vocabulary],
+                ['تدريب فردي يومي', plan.dailyIndividual]
+            ];
+            const planRow = planList.map(p => (p[1] ? '☑' : '☐') + ' ' + p[0]);
+            data.push(planRow);
+            data.push([]);
+            data.push(['موعد إعادة التقييم:', readingEvaluationData.reevaluationDate || '']);
+            data.push(['اسم المعلم:', readingEvaluationData.teacherName || '']);
+            data.push(['التوقيع:', readingEvaluationData.teacherSignature || '']);
+
+            // تحويل البيانات إلى ورقة عمل
+            const ws = XLSX.utils.aoa_to_sheet(data);
+
+            // دمج الخلايا للعناوين
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+                { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },
+                { s: { r: 13, c: 0 }, e: { r: 13, c: 6 } },
+                { s: { r: 25, c: 0 }, e: { r: 25, c: 5 } },
+                { s: { r: 36, c: 0 }, e: { r: 36, c: 1 } },
+                { s: { r: 50, c: 0 }, e: { r: 50, c: 1 } },
+                { s: { r: 51, c: 0 }, e: { r: 51, c: 1 } },
+                { s: { r: 61, c: 0 }, e: { r: 61, c: 1 } }
+            ];
 
             // ضبط عرض الأعمدة
             ws['!cols'] = [
-                { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 18 }, { wch: 35 }
+                { wch: 30 },
+                { wch: 40 },
+                { wch: 12 },
+                { wch: 12 },
+                { wch: 12 },
+                { wch: 12 },
+                { wch: 12 }
             ];
 
-            // إضافة الورقة وحفظ الملف
-            XLSX.utils.book_append_sheet(wb, ws, 'التقرير العلاجي الشامل');
-            XLSX.writeFile(wb, `تقرير_علاجي_${currentReport.student}_${currentReport.date.replace(/\//g,'-')}.xlsx`);
+            return ws;
         }
 
-        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+        // ================================================================
+        // 14. التصدير الأخرى
+        // ================================================================
 
-        // =====================================================================
-        // 14. أحداث وتهيئة
-        // =====================================================================
-        document.getElementById('resetBtn').addEventListener('click', resetAnalysis);
+        function exportAllStudentsJSON() {
+            if (Object.keys(studentsData).length === 0) { showToast('لا يوجد طلاب للتصدير', 'error'); return; }
+            const data = JSON.stringify({ students: studentsData, classList, originalText: ORIGINAL_TEXT,
+                exportDate: new Date().toISOString() }, null, 2);
+            const blob = new Blob([data], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `جميع_الطلاب_${formatDateAr(new Date()).replace(/\//g, '-')}.json`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('✅ تم تصدير JSON', 'success');
+        }
 
-        const uploadZone = document.getElementById('uploadZone');
-        uploadZone.addEventListener('dragover', (e) => { e.preventDefault();
-            uploadZone.style.borderColor = '#f1c40f';
-            uploadZone.style.background = '#fef9e7'; });
-        uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#1a4a6a';
-            uploadZone.style.background = '#eef4fa'; });
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.style.borderColor = '#1a4a6a';
-            uploadZone.style.background = '#eef4fa';
-            if (e.dataTransfer.files.length > 0) {
-                document.getElementById('fileInput').files = e.dataTransfer.files;
-                handleFile(e.dataTransfer.files[0]);
+        function exportCurrentStudentExcel() {
+            if (!currentReport) { showToast('لا توجد بيانات تقرير للطالب الحالي', 'error'); return; }
+            exportStudentReport(currentReport, currentReport.studentName || 'تقرير');
+            showToast('✅ تم تصدير تقرير الطالب', 'success');
+        }
+
+        function exportStudentReport(report, name) {
+            const wb = XLSX.utils.book_new();
+            wb.Workbook = { Views: [{ RTL: true }] };
+            const ws = createStudentReportSheet(report, null);
+            XLSX.utils.book_append_sheet(wb, ws, 'تقرير');
+            const fileName = `تقرير_${name}_${formatDateAr(new Date()).replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function exportAllStudentsExcel() {
+            const filter = document.getElementById('classFilter');
+            const selectedClass = filter.value;
+            let studentsToExport = [];
+            if (selectedClass === 'الكل') studentsToExport = Object.keys(studentsData).map(id => ({ id, ...studentsData[
+                    id] }));
+            else studentsToExport = Object.keys(studentsData)
+                .filter(id => studentsData[id].section === selectedClass)
+                .map(id => ({ id, ...studentsData[id] }));
+
+            if (studentsToExport.length === 0) { showToast('لا يوجد طلاب في هذا الفصل للتصدير', 'error'); return; }
+
+            const wb = XLSX.utils.book_new();
+            wb.Workbook = { Views: [{ RTL: true }] };
+
+            const summaryData = [
+                ['التقرير المجمع لطلاب الفصل'],
+                ['الفصل: ' + selectedClass],
+                ['تاريخ التقرير: ' + formatDateAr(new Date())],
+                [],
+                ['م', 'اسم الطالب', 'الدقة', 'الأخطاء', 'الكلمات', 'السرعة', 'مخارج الحروف', 'الحركات', 'المدود', 'الشدة',
+                    'السكون', 'الطلاقة'
+                ]
+            ];
+
+            studentsToExport.forEach((student, idx) => {
+                const report = student.latestReport || {};
+                const skills = report.skills || {};
+                const fluency = report.fluency || {};
+                summaryData.push([
+                    idx + 1,
+                    student.name || 'بدون اسم',
+                    report.accuracy || '—',
+                    report.errors || '—',
+                    report.wordCount || '—',
+                    fluency.wordsPerMinute || '—',
+                    skills['مخارج الحروف']?.score || '—',
+                    skills['الحركات القصيرة']?.score || '—',
+                    skills['المدود']?.score || '—',
+                    skills['الشدة']?.score || '—',
+                    skills['السكون']?.score || '—',
+                    skills['الطلاقة القرائية']?.score || '—'
+                ]);
+            });
+
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 6 }, { wch: 22 }, { wch: 10 }, { wch: 10 },
+                { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+                { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'التقرير المجمع');
+
+            studentsToExport.forEach((student) => {
+                const report = student.latestReport;
+                if (!report) return;
+                const sheetName = (student.name || 'طالب').substring(0, 25);
+                const ws = createStudentReportSheet(report, student);
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+
+            const fileName = `تقرير_الفصل_${selectedClass}_${formatDateAr(new Date()).replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast('✅ تم تصدير تقرير الفصل', 'success');
+        }
+
+        function exportComprehensiveExcel() {
+            const allIds = Object.keys(studentsData);
+            if (allIds.length === 0) { showToast('لا يوجد طلاب للتصدير', 'error'); return; }
+
+            const wb = XLSX.utils.book_new();
+            wb.Workbook = { Views: [{ RTL: true }] };
+
+            const summaryData = [
+                ['التقرير الشامل لجميع الطلاب'],
+                ['تاريخ التقرير: ' + formatDateAr(new Date())],
+                [],
+                ['م', 'الطالب', 'الفصل', 'الدقة', 'الأخطاء', 'الكلمات', 'السرعة', 'مخارج الحروف', 'الحركات', 'المدود',
+                    'الشدة', 'السكون', 'الطلاقة'
+                ]
+            ];
+
+            allIds.forEach((id, idx) => {
+                const student = studentsData[id];
+                const report = student?.latestReport || {};
+                const skills = report.skills || {};
+                const fluency = report.fluency || {};
+                summaryData.push([
+                    idx + 1,
+                    student?.name || 'بدون اسم',
+                    student?.section || '—',
+                    report.accuracy || '—',
+                    report.errors || '—',
+                    report.wordCount || '—',
+                    fluency.wordsPerMinute || '—',
+                    skills['مخارج الحروف']?.score || '—',
+                    skills['الحركات القصيرة']?.score || '—',
+                    skills['المدود']?.score || '—',
+                    skills['الشدة']?.score || '—',
+                    skills['السكون']?.score || '—',
+                    skills['الطلاقة القرائية']?.score || '—'
+                ]);
+            });
+
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            wsSummary['!cols'] = [
+                { wch: 6 }, { wch: 22 }, { wch: 14 }, { wch: 10 },
+                { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 14 },
+                { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+                { wch: 14 }
+            ];
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'التقرير الشامل');
+
+            allIds.forEach((id) => {
+                const student = studentsData[id];
+                const report = student?.latestReport;
+                if (!report || !student) return;
+                const sheetName = (student.name || 'طالب').substring(0, 25);
+                const ws = createStudentReportSheet(report, student);
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+
+            const fileName =
+                `تقرير_شامل_جميع_الطلاب_${formatDateAr(new Date()).replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast('✅ تم تصدير التقرير الشامل', 'success');
+        }
+
+        function createStudentReportSheet(report, student) {
+            const data = [
+                ['تقرير الطالب'],
+                [''],
+                ['اسم الطالب:', student?.name || report.studentName || '—'],
+                ['الصف:', report.grade || '—'],
+                ['الفصل:', report.section || '—'],
+                ['المعلم:', report.teacher || '—'],
+                ['المدرسة:', report.school || '—'],
+                ['عنوان النص:', report.textTitle || '—'],
+                ['التاريخ:', report.date || '—'],
+                ['المدة:', report.duration || '—'],
+                ['الكلمات المقروءة:', report.wordCount || '—'],
+                ['الأخطاء:', report.errors || '—'],
+                ['نسبة الدقة:', (report.accuracy || 0) + '%'],
+                ['السرعة:', (report.fluency?.wordsPerMinute || '—') + ' ك/د'],
+                [''],
+                ['تحليل المهارات'],
+                ['المهارة', 'النتيجة', 'مستوى الإتقان']
+            ];
+
+            const skillNames = ['مخارج الحروف', 'الحركات القصيرة', 'المدود', 'الشدة', 'السكون', 'الطلاقة القرائية'];
+            for (const name of skillNames) {
+                const skill = report.skills?.[name] || { score: 0, label: 'يحتاج علاج' };
+                data.push([name, skill.score + '%', skill.label]);
+            }
+
+            data.push(['']);
+            data.push(['التحدي التالي:', report.challenge || '—']);
+            data.push(['التوصيات:', report.recommendation || '—']);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 25 }];
+            return ws;
+        }
+
+        // ================================================================
+        // 15. التخزين المحلي والمستمعين
+        // ================================================================
+
+        function saveToLocalStorage() {
+            try {
+                const payload = {
+                    studentsData,
+                    selectedStudentId,
+                    originalText: ORIGINAL_TEXT,
+                    classList,
+                    currentClassFilter,
+                    formData: {
+                        classGrade: document.getElementById('classGrade').value || '',
+                        classSection: document.getElementById('classSection').value || '',
+                        teacherName: document.getElementById('teacherName').value || '',
+                        schoolName: document.getElementById('schoolName').value || '',
+                        textTitle: document.getElementById('textTitle').value || ''
+                    },
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('qiraati_app_state', JSON.stringify(payload));
+            } catch (e) { console.warn('⚠️ فشل حفظ محلي:', e); }
+        }
+
+        function loadLocalData() {
+            try {
+                const raw = localStorage.getItem('qiraati_app_state');
+                if (!raw) {
+                    classList = [...DEFAULT_CLASSES];
+                    renderClasses();
+                    filterStudentsByClass();
+                    return;
+                }
+                const data = JSON.parse(raw);
+                if (data.studentsData) {
+                    studentsData = data.studentsData;
+                    window.studentData = {};
+                    Object.keys(studentsData).forEach(id => {
+                        const s = studentsData[id];
+                        window.studentData[s.name] = {
+                            grade: s.grade || '',
+                            section: s.section || '',
+                            teacher: s.teacher || '',
+                            school: s.school || '',
+                            studentId: id
+                        };
+                        if (!s.reports) s.reports = [];
+                        if (!s.latestReport) s.latestReport = null;
+                    });
+                }
+                if (data.selectedStudentId) selectedStudentId = data.selectedStudentId;
+                if (data.originalText) { ORIGINAL_TEXT = data.originalText;
+                    document.getElementById('originalText').innerHTML = ORIGINAL_TEXT; }
+                if (data.classList) classList = data.classList;
+                else classList = [...DEFAULT_CLASSES];
+                if (data.currentClassFilter) currentClassFilter = data.currentClassFilter;
+                if (data.formData) {
+                    if (data.formData.classGrade) document.getElementById('classGrade').value = data.formData.classGrade;
+                    if (data.formData.classSection) document.getElementById('classSection').value = data.formData
+                        .classSection;
+                    if (data.formData.teacherName) document.getElementById('teacherName').value = data.formData
+                        .teacherName;
+                    if (data.formData.schoolName) document.getElementById('schoolName').value = data.formData.schoolName;
+                    if (data.formData.textTitle) document.getElementById('textTitle').value = data.formData.textTitle;
+                }
+                renderClasses();
+                filterStudentsByClass();
+                if (selectedStudentId && studentsData[selectedStudentId]) loadStudentData(selectedStudentId);
+                else if (filteredStudentIds.length > 0) { selectedStudentId = filteredStudentIds[0];
+                    loadStudentData(selectedStudentId); } else resetAnalysis();
+                window.__dataLoaded = true;
+            } catch (e) { console.warn('⚠️ فشل تحميل محلي:', e);
+                classList = [...DEFAULT_CLASSES];
+                renderClasses();
+                filterStudentsByClass(); }
+        }
+
+        function startFirebaseListeners() {
+            if (window.__listenersStarted || !window.__firebaseReady || !window.__user) return;
+            window.__listenersStarted = true;
+
+            const db = window.__db;
+
+            const studentsUnsubscribe = db.collection('students')
+                .onSnapshot((snapshot) => {
+                    if (isSyncing) return;
+                    isSyncing = true;
+
+                    snapshot.docChanges().forEach((change) => {
+                        const id = change.doc.id;
+                        const data = change.doc.data();
+
+                        if (change.type === 'removed') {
+                            delete studentsData[id];
+                            if (selectedStudentId === id) {
+                                selectedStudentId = filteredStudentIds.length > 0 ? filteredStudentIds[0] : null;
+                                if (selectedStudentId) loadStudentData(selectedStudentId);
+                                else resetAnalysis();
+                            }
+                        } else if (change.type === 'added' || change.type === 'modified') {
+                            const existing = studentsData[id];
+                            if (!existing) {
+                                studentsData[id] = {
+                                    name: data.name || id,
+                                    grade: data.grade || '',
+                                    section: data.section || '',
+                                    teacher: data.teacher || '',
+                                    school: data.school || '',
+                                    reports: [],
+                                    latestReport: null
+                                };
+                            } else {
+                                existing.name = data.name || existing.name;
+                                existing.grade = data.grade || existing.grade;
+                                existing.section = data.section || existing.section;
+                                existing.teacher = data.teacher || existing.teacher;
+                                existing.school = data.school || existing.school;
+                                if (!existing.reports) existing.reports = [];
+                                if (!existing.latestReport) existing.latestReport = null;
+                            }
+                            const s = studentsData[id];
+                            window.studentData[s.name] = {
+                                grade: s.grade,
+                                section: s.section,
+                                teacher: s.teacher,
+                                school: s.school,
+                                studentId: id
+                            };
+                            if (s.section && !classList.includes(s.section)) classList.push(s.section);
+                        }
+                    });
+
+                    renderClasses();
+                    filterStudentsByClass();
+                    if (selectedStudentId && studentsData[selectedStudentId]) {
+                        const student = studentsData[selectedStudentId];
+                        if (!student.latestReport && student.reports && student.reports.length > 0) {
+                            student.latestReport = student.reports[0];
+                            displayReportData(student.latestReport);
+                        }
+                    }
+                    saveToLocalStorage();
+                    isSyncing = false;
+                }, (error) => { console.warn('⚠️ خطأ في مستمع الطلاب:', error);
+                    isSyncing = false; });
+
+            const metaUnsubscribe = db.collection('meta').doc('appState')
+                .onSnapshot((doc) => {
+                    if (doc.exists && !isSyncing) {
+                        const data = doc.data();
+                        if (data.originalText && data.originalText !== ORIGINAL_TEXT) {
+                            ORIGINAL_TEXT = data.originalText;
+                            document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+                            saveToLocalStorage();
+                        }
+                    }
+                }, (error) => { console.warn('⚠️ خطأ في مستمع البيانات العامة:', error); });
+
+            window.__studentsUnsubscribe = studentsUnsubscribe;
+            window.__metaUnsubscribe = metaUnsubscribe;
+
+            loadLocalData();
+
+            db.collection('meta').doc('appState').get()
+                .then((doc) => {
+                    if (doc.exists && doc.data().originalText) {
+                        ORIGINAL_TEXT = doc.data().originalText;
+                        document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+                        saveToLocalStorage();
+                    }
+                })
+                .catch(() => {});
+
+            console.log('✅ تم تفعيل المستمعين في الوقت الفعلي');
+        }
+
+        function renderClasses() {
+            const filter = document.getElementById('classFilter');
+            const current = filter.value;
+            filter.innerHTML = '<option value="الكل">جميع الفصول</option>';
+            const allClasses = [...new Set([...DEFAULT_CLASSES, ...classList])];
+            allClasses.forEach(c => { filter.innerHTML += `<option value="${c}">${c}</option>`; });
+            if (current && !allClasses.includes(current) && current !== 'الكل') {
+                filter.innerHTML += `<option value="${current}" selected>${current}</option>`;
+            } else {
+                filter.value = current;
+            }
+        }
+
+        // ================================================================
+        // 16. ربط الأحداث والتهيئة
+        // ================================================================
+
+        document.querySelectorAll('#classGrade, #classSection, #teacherName, #schoolName, #textTitle').forEach(el => {
+            el.addEventListener('change', () => {
+                saveToLocalStorage();
+                if (selectedStudentId && window.__firebaseReady && window.__user) {
+                    const db = window.__db;
+                    const updates = {};
+                    if (el.id === 'classGrade') updates.grade = el.value;
+                    if (el.id === 'classSection') updates.section = el.value;
+                    if (el.id === 'teacherName') updates.teacher = el.value;
+                    if (el.id === 'schoolName') updates.school = el.value;
+                    if (el.id === 'textTitle') {
+                        db.collection('meta').doc('appState').set({
+                            textTitle: el.value,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true }).catch(() => {});
+                        return;
+                    }
+                    if (Object.keys(updates).length > 0) {
+                        db.collection('students').doc(selectedStudentId).update(updates)
+                            .catch(() => {});
+                    }
+                }
+            });
+            el.addEventListener('input', () => saveToLocalStorage());
+        });
+
+        document.getElementById('smartImportBtn').addEventListener('click', () => document.getElementById('smartFileInput')
+            .click());
+        document.getElementById('smartImportBtn2').addEventListener('click', () => document.getElementById('smartFileInput')
+            .click());
+        document.getElementById('smartFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                showToast('الرجاء اختيار ملف Excel (xlsx, xls, csv)', 'error');
+                e.target.value = '';
+                return;
+            }
+            showToast('✅ تم استيراد الطلاب بنجاح', 'success', 2000);
+            e.target.value = '';
+        });
+
+        document.getElementById('uploadTextBtn').addEventListener('click', () => document.getElementById('textFileInput')
+            .click());
+        document.getElementById('textFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const text = ev.target.result;
+                if (text) {
+                    ORIGINAL_TEXT = text.trim();
+                    document.getElementById('originalText').innerHTML = ORIGINAL_TEXT;
+                    saveToLocalStorage();
+                    showToast('✅ تم تحديث النص', 'success');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        // إضافة زر تقييم القراءة في شريط التنقل
+        const evalBtn = document.querySelector('.btn-eval');
+        if (evalBtn) {
+            evalBtn.addEventListener('click', exportReadingEvaluation);
+        }
+
+        initCharts();
+        loadLocalData();
+        setInterval(saveToLocalStorage, 30000);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigateStudent(e.key === 'ArrowLeft' ? 1 : -1);
             }
         });
 
-        initCharts();
-        resetAnalysis();
-        if (students.length === 0) {
-            students = ['أحمد محمد', 'ليلى خالد', 'سامي حسن', 'نورا علي', 'خالد عمر'];
-            selectedStudent = students[0];
-            renderStudents();
-            resetAnalysis();
-            document.getElementById('selectedStudentDisplay').textContent = '👤 ' + selectedStudent;
-            document.getElementById('studentNameDisplay').value = selectedStudent;
-            document.getElementById('recText').textContent = 'تم تحميل طلاب تجريبيين.';
-        }
-        console.log('🚀 منصة قراءتي - التقرير العلاجي المتقدم جاهزة!');
+        console.log('✅ النظام جاهز (نسخة نهائية مع بطاقة تقييم القراءة)');
+        console.log('📌 الفصول الافتراضية:', DEFAULT_CLASSES);
+        console.log('📌 عدد الطلاب:', Object.keys(studentsData).length);
+        console.log('📌 اضغط "تقييم القراءة" لتصدير بطاقة التقييم.');
     </script>
 </body>
 </html>
